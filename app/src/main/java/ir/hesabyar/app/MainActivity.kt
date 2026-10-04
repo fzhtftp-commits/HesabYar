@@ -120,7 +120,6 @@ fun HesabYarApp() {
             }
         }
     }
-    )
 
     val income = transactions.filter { it.income }.sumOf { it.amount }
     val expense = transactions.filter { !it.income }.sumOf { it.amount }
@@ -132,6 +131,7 @@ fun HesabYarApp() {
     val monthExpense = monthItems.filter { !it.income }.sumOf { it.amount }
     val monthProfit = monthIncome - monthExpense
     val maxMonth = maxOf(monthIncome, monthExpense, 1L)
+
     if (showWelcome) {
         WelcomeScreen {
             prefs.edit().putBoolean(KEY_WELCOME_SHOWN, true).apply()
@@ -139,142 +139,142 @@ fun HesabYarApp() {
         }
     } else {
         val visibleTransactions = transactions.filter {
-        val textMatch = search.isBlank() || it.title.contains(search, true) || it.category.contains(search, true)
-        val filterMatch = filter == "all" || (filter == "income" && it.income) || (filter == "expense" && !it.income)
-        textMatch && filterMatch
-    }
+            val textMatch = search.isBlank() || it.title.contains(search, true) || it.category.contains(search, true)
+            val filterMatch = filter == "all" || (filter == "income" && it.income) || (filter == "expense" && !it.income)
+            textMatch && filterMatch
+        }
 
-    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
-        Scaffold(topBar = {
-            TopAppBar(title = { Text("حساب‌یار", fontWeight = FontWeight.Bold) })
-        }) { padding ->
-            LazyColumn(
-                Modifier.fillMaxSize().padding(padding).padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                item { Text("مدیریت مالی کسب‌وکار", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold) }
-                item {
-                    Card(Modifier.fillMaxWidth()) {
-                        Column(Modifier.padding(18.dp)) {
-                            Text("موجودی / سود", style = MaterialTheme.typography.labelLarge)
-                            Text("${formatter.format(balance)} تومان", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+            Scaffold(topBar = {
+                TopAppBar(title = { Text("حساب‌یار", fontWeight = FontWeight.Bold) })
+            }) { padding ->
+                LazyColumn(
+                    Modifier.fillMaxSize().padding(padding).padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    item { Text("مدیریت مالی کسب‌وکار", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold) }
+                    item {
+                        Card(Modifier.fillMaxWidth()) {
+                            Column(Modifier.padding(18.dp)) {
+                                Text("موجودی / سود", style = MaterialTheme.typography.labelLarge)
+                                Text("${formatter.format(balance)} تومان", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                            }
                         }
                     }
-                }
-                item {
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        SummaryCard("درآمد", income, Modifier.weight(1f), formatter)
-                        SummaryCard("هزینه", expense, Modifier.weight(1f), formatter)
-                    }
-                }
-                item {
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Button({ isIncome = true; editingIndex = null; showDialog = true }, Modifier.weight(1f)) { Text("➕ ثبت درآمد") }
-                        OutlinedButton({ isIncome = false; editingIndex = null; showDialog = true }, Modifier.weight(1f)) { Text("➖ ثبت هزینه") }
-                    }
-                }
-                item {
-                    Card(Modifier.fillMaxWidth()) {
-                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                            Text("گزارش ماه جاری", fontWeight = FontWeight.Bold)
-                            Text("درآمد ماه: " + formatter.format(monthIncome) + " تومان")
-                            Text("هزینه ماه: " + formatter.format(monthExpense) + " تومان")
-                            Text("سود ماه: " + formatter.format(monthProfit) + " تومان")
-                            Text("نمودار درآمد")
-                            LinearProgressIndicator(progress = { (monthIncome.toFloat() / maxMonth).coerceIn(0f, 1f) }, modifier = Modifier.fillMaxWidth())
-                            Text("نمودار هزینه")
-                            LinearProgressIndicator(progress = { (monthExpense.toFloat() / maxMonth).coerceIn(0f, 1f) }, modifier = Modifier.fillMaxWidth())
+                    item {
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            SummaryCard("درآمد", income, Modifier.weight(1f), formatter)
+                            SummaryCard("هزینه", expense, Modifier.weight(1f), formatter)
                         }
                     }
-                }
-                item {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedTextField(search, { search = it }, modifier = Modifier.fillMaxWidth(), label = { Text("جستجوی عنوان یا دسته‌بندی") }, singleLine = true)
+                    item {
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Button({ isIncome = true; editingIndex = null; showDialog = true }, Modifier.weight(1f)) { Text("➕ ثبت درآمد") }
+                            OutlinedButton({ isIncome = false; editingIndex = null; showDialog = true }, Modifier.weight(1f)) { Text("➖ ثبت هزینه") }
+                        }
+                    }
+                    item {
+                        Card(Modifier.fillMaxWidth()) {
+                            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                                Text("گزارش ماه جاری", fontWeight = FontWeight.Bold)
+                                Text("درآمد ماه: " + formatter.format(monthIncome) + " تومان")
+                                Text("هزینه ماه: " + formatter.format(monthExpense) + " تومان")
+                                Text("سود ماه: " + formatter.format(monthProfit) + " تومان")
+                                Text("نمودار درآمد")
+                                LinearProgressIndicator(progress = { (monthIncome.toFloat() / maxMonth).coerceIn(0f, 1f) }, modifier = Modifier.fillMaxWidth())
+                                Text("نمودار هزینه")
+                                LinearProgressIndicator(progress = { (monthExpense.toFloat() / maxMonth).coerceIn(0f, 1f) }, modifier = Modifier.fillMaxWidth())
+                            }
+                        }
+                    }
+                    item {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedTextField(search, { search = it }, modifier = Modifier.fillMaxWidth(), label = { Text("جستجوی عنوان یا دسته‌بندی") }, singleLine = true)
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                FilterButton("همه", filter == "all", Modifier.weight(1f)) { filter = "all" }
+                                FilterButton("درآمد", filter == "income", Modifier.weight(1f)) { filter = "income" }
+                                FilterButton("هزینه", filter == "expense", Modifier.weight(1f)) { filter = "expense" }
+                            }
+                        }
+                    }
+                    item {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            FilterButton("همه", filter == "all", Modifier.weight(1f)) { filter = "all" }
-                            FilterButton("درآمد", filter == "income", Modifier.weight(1f)) { filter = "income" }
-                            FilterButton("هزینه", filter == "expense", Modifier.weight(1f)) { filter = "expense" }
+                            OutlinedButton({
+                                csvLauncher.launch("HesabYar_" + SimpleDateFormat("yyyyMMdd_HHmm", Locale.US).format(Date()) + ".csv")
+                            }, Modifier.weight(1f)) { Text("خروجی Excel") }
+                            OutlinedButton({
+                                val arr = JSONArray()
+                                transactions.forEach { t ->
+                                    arr.put(JSONObject().apply {
+                                        put("title", t.title); put("amount", t.amount); put("income", t.income)
+                                        put("category", t.category); put("date", t.date)
+                                    })
+                                }
+                                shareText(context, "پشتیبان حساب‌یار", arr.toString(2), "application/json")
+                            }, Modifier.weight(1f)) { Text("پشتیبان JSON") }
                         }
                     }
-                }
-                item {
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    item {
                         OutlinedButton({
-                            csvLauncher.launch("HesabYar_" + SimpleDateFormat("yyyyMMdd_HHmm", Locale.US).format(Date()) + ".csv")
-                        }, Modifier.weight(1f)) { Text("خروجی Excel") }
-                        OutlinedButton({
-                            val arr = JSONArray()
-                            transactions.forEach { t ->
-                                arr.put(JSONObject().apply {
-                                    put("title", t.title); put("amount", t.amount); put("income", t.income)
-                                    put("category", t.category); put("date", t.date)
-                                })
-                            }
-                            shareText(context, "پشتیبان حساب‌یار", arr.toString(2), "application/json")
-                        }, Modifier.weight(1f)) { Text("پشتیبان JSON") }
+                            transactions = emptyList()
+                            saveTransactions(context, emptyList())
+                        }, Modifier.fillMaxWidth()) { Text("پاک‌کردن همه تراکنش‌ها") }
                     }
-                }
-                item {
-                    OutlinedButton({
-                        transactions = emptyList()
-                        saveTransactions(context, emptyList())
-                    }, Modifier.fillMaxWidth()) { Text("پاک‌کردن همه تراکنش‌ها") }
-                }
-                item { Text("تراکنش‌ها (" + visibleTransactions.size + ")", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold) }
+                    item { Text("تراکنش‌ها (" + visibleTransactions.size + ")", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold) }
 
-                itemsIndexed(visibleTransactions) { _, transaction ->
-                    val index = transactions.indexOf(transaction)
-                    Card(Modifier.fillMaxWidth()) {
-                        Column(Modifier.padding(12.dp)) {
-                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                Column(Modifier.weight(1f)) {
-                                    Text(transaction.title, fontWeight = FontWeight.Bold)
-                                    Text("${transaction.category} • ${transaction.date}", style = MaterialTheme.typography.bodySmall)
+                    itemsIndexed(visibleTransactions) { _, transaction ->
+                        val index = transactions.indexOf(transaction)
+                        Card(Modifier.fillMaxWidth()) {
+                            Column(Modifier.padding(12.dp)) {
+                                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                    Column(Modifier.weight(1f)) {
+                                        Text(transaction.title, fontWeight = FontWeight.Bold)
+                                        Text("${transaction.category} • ${transaction.date}", style = MaterialTheme.typography.bodySmall)
+                                    }
+                                    Text(
+                                        if (transaction.income) "+${formatter.format(transaction.amount)}"
+                                        else "-${formatter.format(transaction.amount)}",
+                                        fontWeight = FontWeight.Bold
+                                    )
                                 }
-                                Text(
-                                    if (transaction.income) "+${formatter.format(transaction.amount)}"
-                                    else "-${formatter.format(transaction.amount)}",
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                                TextButton({
-                                    isIncome = transaction.income
-                                    editingIndex = index
-                                    showDialog = true
-                                }) { Text("ویرایش") }
-                                TextButton({
-                                    val updated = transactions.toMutableList()
-                                    updated.removeAt(index)
-                                    transactions = updated
-                                    saveTransactions(context, updated)
-                                }) { Text("حذف") }
+                                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                                    TextButton({
+                                        isIncome = transaction.income
+                                        editingIndex = index
+                                        showDialog = true
+                                    }) { Text("ویرایش") }
+                                    TextButton({
+                                        val updated = transactions.toMutableList()
+                                        updated.removeAt(index)
+                                        transactions = updated
+                                        saveTransactions(context, updated)
+                                    }) { Text("حذف") }
+                                }
                             }
                         }
                     }
                 }
             }
         }
-    }
 
-    if (showDialog) {
-        AddTransactionDialog(
-            initial = editingIndex?.let { transactions[it] },
-            income = isIncome,
-            onDismiss = { showDialog = false },
-            onSave = { title, amount, category ->
-                val date = SimpleDateFormat("yyyy/MM/dd HH:mm", Locale.US).format(Date())
-                val updated = transactions.toMutableList()
-                val item = Transaction(title, amount, isIncome, category, date)
-                val edit = editingIndex
-                if (edit == null) updated.add(0, item) else updated[edit] = item
-                transactions = updated
-                saveTransactions(context, updated)
-                showDialog = false
-                editingIndex = null
-            }
-        )
-    }
+        if (showDialog) {
+            AddTransactionDialog(
+                initial = editingIndex?.let { transactions[it] },
+                income = isIncome,
+                onDismiss = { showDialog = false },
+                onSave = { title, amount, category ->
+                    val date = SimpleDateFormat("yyyy/MM/dd HH:mm", Locale.US).format(Date())
+                    val updated = transactions.toMutableList()
+                    val item = Transaction(title, amount, isIncome, category, date)
+                    val edit = editingIndex
+                    if (edit == null) updated.add(0, item) else updated[edit] = item
+                    transactions = updated
+                    saveTransactions(context, updated)
+                    showDialog = false
+                    editingIndex = null
+                }
+            )
+        }
     }
 }
 
