@@ -11,25 +11,57 @@
 <main>
 <section class="balance card"><span>موجودی / سود</span><strong id="balance">۰ تومان</strong></section>
 <section class="summary">
-<div class="card"><span>درآمد</span><strong id="income">۰</strong><small>تومان</small></div>
-<div class="card"><span>هزینه</span><strong id="expense">۰</strong><small>تومان</small></div>
+<div class="card"><span>کل درآمد</span><strong id="income">۰</strong><small>تومان</small></div>
+<div class="card"><span>کل هزینه</span><strong id="expense">۰</strong><small>تومان</small></div>
 </section>
+
+<section class="card report">
+<div class="section-title">گزارش ماه جاری</div>
+<div class="report-grid">
+<div><span>درآمد ماه</span><strong id="monthIncome">۰</strong></div>
+<div><span>هزینه ماه</span><strong id="monthExpense">۰</strong></div>
+<div><span>سود ماه</span><strong id="monthProfit">۰</strong></div>
+</div>
+<div class="chart">
+<div class="bar-row"><span>درآمد</span><div class="bar"><i id="incomeBar"></i></div></div>
+<div class="bar-row"><span>هزینه</span><div class="bar"><i id="expenseBar"></i></div></div>
+</div>
+</section>
+
 <section class="actions">
 <button id="incomeBtn">＋ ثبت درآمد</button>
 <button id="expenseBtn" class="outline">－ ثبت هزینه</button>
 </section>
+
+<section class="tools card">
+<div class="tool-row">
+<input id="search" placeholder="جستجوی عنوان یا دسته‌بندی..." aria-label="جستجو">
+<select id="filter">
+<option value="all">همه تراکنش‌ها</option>
+<option value="income">فقط درآمد</option>
+<option value="expense">فقط هزینه</option>
+</select>
+</div>
+<div class="tool-row">
+<button id="exportBtn" class="small">خروجی Excel</button>
+<button id="backupBtn" class="small outline">پشتیبان JSON</button>
+<button id="clearBtn" class="small danger">پاک‌کردن همه</button>
+</div>
+</section>
+
 <section>
-<div class="section-title">تراکنش‌ها</div>
+<div class="section-title">تراکنش‌ها <span id="count" class="count"></span></div>
 <div id="transactions"></div>
 </section>
 </main>
+
 <dialog id="dialog">
 <form method="dialog" id="form">
 <h2 id="dialogTitle">ثبت درآمد</h2>
 <label>عنوان<input id="title" required maxlength="60"></label>
 <label>مبلغ به تومان<input id="amount" inputmode="numeric" required></label>
 <label>دسته‌بندی<input id="category" maxlength="40" placeholder="مثلاً فروش، خرید"></label>
-<div class="dialog-actions"><button value="cancel" class="outline">انصراف</button><button id="saveBtn" value="default">ذخیره</button></div>
+<div class="dialog-actions"><button type="button" id="cancelBtn" class="outline">انصراف</button><button id="saveBtn" type="submit">ذخیره</button></div>
 </form>
 </dialog>
 <script src="app.js"></script>
