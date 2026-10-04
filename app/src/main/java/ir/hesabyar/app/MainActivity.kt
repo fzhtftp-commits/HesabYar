@@ -7,6 +7,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.*
@@ -42,6 +43,7 @@ class MainActivity : ComponentActivity() {
 
 private const val PREFS = "hesabyar_data"
 private const val KEY_TRANSACTIONS = "transactions"
+private const val KEY_WELCOME_SHOWN = "welcome_shown"
 
 private fun shareText(context: Context, subject: String, text: String, mime: String) {
     context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply {
@@ -86,6 +88,8 @@ private fun saveTransactions(context: Context, list: List<Transaction>) {
 @Composable
 fun HesabYarApp() {
     val context = LocalContext.current
+    val prefs = remember { context.getSharedPreferences(PREFS, Context.MODE_PRIVATE) }
+    var showWelcome by remember { mutableStateOf(!prefs.getBoolean(KEY_WELCOME_SHOWN, false)) }
     var transactions by remember { mutableStateOf(loadTransactions(context)) }
     var showDialog by remember { mutableStateOf(false) }
     var editingIndex by remember { mutableStateOf<Int?>(null) }
@@ -127,6 +131,14 @@ fun HesabYarApp() {
     val monthExpense = monthItems.filter { !it.income }.sumOf { it.amount }
     val monthProfit = monthIncome - monthExpense
     val maxMonth = maxOf(monthIncome, monthExpense, 1L)
+    if (showWelcome) {
+        WelcomeScreen {
+            prefs.edit().putBoolean(KEY_WELCOME_SHOWN, true).apply()
+            showWelcome = false
+        }
+        return@Composable
+    }
+
     val visibleTransactions = transactions.filter {
         val textMatch = search.isBlank() || it.title.contains(search, true) || it.category.contains(search, true)
         val filterMatch = filter == "all" || (filter == "income" && it.income) || (filter == "expense" && !it.income)
@@ -263,6 +275,47 @@ fun HesabYarApp() {
                 editingIndex = null
             }
         )
+    }
+}
+
+
+@Composable
+fun WelcomeScreen(onStart: () -> Unit) {
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+        Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+            Column(
+                Modifier.fillMaxSize().padding(28.dp),
+                horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Surface(
+                    modifier = Modifier.size(112.dp),
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.primary
+                ) {
+                    Box(contentAlignment = androidx.compose.ui.Alignment.Center) {
+                        Text("₿", color = MaterialTheme.colorScheme.onPrimary, style = MaterialTheme.typography.displayMedium, fontWeight = FontWeight.Bold)
+                    }
+                }
+                Spacer(Modifier.height(24.dp))
+                Text("حساب‌یار", style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(10.dp))
+                Text("به حساب‌یار خوش آمدید", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(12.dp))
+                Text(
+                    "مدیریت ساده، سریع و هوشمند حساب‌های شما\nدرآمد، هزینه و گزارش‌های مالی در یکجا",
+                    style = MaterialTheme.typography.bodyLarge,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(Modifier.height(36.dp))
+                Button(onClick = onStart, modifier = Modifier.fillMaxWidth().height(54.dp)) {
+                    Text("شروع کنیم", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                }
+                Spacer(Modifier.height(14.dp))
+                Text("اطلاعات شما در این دستگاه ذخیره می‌شود", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
     }
 }
 
