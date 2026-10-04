@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>حساب‌یار | مدیریت مالی</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header><div class="brand">حساب‌یار</div><div class="sub">مدیریت مالی کسب‌وکار</div></header>
+<main>
+<section class="balance card"><span>موجودی / سود</span><strong id="balance">۰ تومان</strong></section>
+<section class="summary">
+<div class="card"><span>درآمد</span><strong id="income">۰</strong><small>تومان</small></div>
+<div class="card"><span>هزینه</span><strong id="expense">۰</strong><small>تومان</small></div>
+</section>
+<section class="actions">
+<button id="incomeBtn">＋ ثبت درآمد</button>
+<button id="expenseBtn" class="outline">－ ثبت هزینه</button>
+</section>
+<section>
+<div class="section-title">تراکنش‌ها</div>
+<div id="transactions"></div>
+</section>
+</main>
+<dialog id="dialog">
+<form method="dialog" id="form">
+<h2 id="dialogTitle">ثبت درآمد</h2>
+<label>عنوان<input id="title" required maxlength="60"></label>
+<label>مبلغ به تومان<input id="amount" inputmode="numeric" required></label>
+<label>دسته‌بندی<input id="category" maxlength="40" placeholder="مثلاً فروش، خرید"></label>
+<div class="dialog-actions"><button value="cancel" class="outline">انصراف</button><button id="saveBtn" value="default">ذخیره</button></div>
+</form>
+</dialog>
+<script src="app.js"></script>
+</body>
+</html>
