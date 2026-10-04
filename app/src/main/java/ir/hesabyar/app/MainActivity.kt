@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import java.text.DecimalFormat
+import androidx.compose.ui.platform.LocalLayoutDirection
 
 data class Transaction(val title: String, val amount: Long, val income: Boolean)
 
@@ -40,8 +41,9 @@ fun HesabYarApp() {
     val balance = income - expense
     val fmt = DecimalFormat("#,###")
 
-    CompositionLocalProvider(LocalLayoutDirection provides androidx.compose.ui.unit.LayoutDirection.Rtl) {
-        Scaffold(
+   CompositionLocalProvider(
+    LocalLayoutDirection provides androidx.compose.ui.unit.LayoutDirection.Rtl) 
+            Scaffold(
             topBar = {
                 TopAppBar(title = { Text("حساب‌یار", fontWeight = FontWeight.Bold) })
             }
