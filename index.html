@@ -7,7 +7,25 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header><div class="brand">حساب‌یار</div><div class="sub">مدیریت مالی کسب‌وکار</div></header>
+<div id="authScreen" class="auth-screen">
+  <div class="auth-card">
+    <div class="brand">حساب‌یار</div>
+    <div class="sub">مدیریت مالی کسب‌وکار</div>
+    <div class="auth-tabs">
+      <button id="loginTab">ورود</button>
+      <button id="signupTab" class="outline">ثبت‌نام</button>
+    </div>
+    <form id="authForm">
+      <label>ایمیل<input id="authEmail" type="email" required autocomplete="email"></label>
+      <label>رمز عبور<input id="authPassword" type="password" required minlength="6" autocomplete="current-password"></label>
+      <button id="authSubmit" type="submit">ورود</button>
+    </form>
+    <div id="authMessage" class="auth-message"></div>
+  </div>
+</div>
+
+<div id="appScreen" class="hidden">
+<header><div class="brand">حساب‌یار</div><div class="sub">مدیریت مالی کسب‌وکار <span id="userEmail"></span> <button id="logoutBtn" class="logout">خروج</button></div></header>
 <main>
 <section class="balance card"><span>موجودی / سود</span><strong id="balance">۰ تومان</strong></section>
 <section class="summary">
@@ -51,9 +69,11 @@
 
 <section>
 <div class="section-title">تراکنش‌ها <span id="count" class="count"></span></div>
+<div id="status" class="status"></div>
 <div id="transactions"></div>
 </section>
 </main>
+</div>
 
 <dialog id="dialog">
 <form method="dialog" id="form">
