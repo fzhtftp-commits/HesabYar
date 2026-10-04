@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.DisposableEffect
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -28,6 +29,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -99,6 +103,7 @@ fun HesabYarApp() {
     val scope = rememberCoroutineScope()
     val accessToken = prefs.getString("supabase_access_token", null)
     val userId = prefs.getString("supabase_user_id", null)
+    val lifecycleOwner = LocalLifecycleOwner.current
     var syncMessage by remember { mutableStateOf("") }
     var showSplash by remember { mutableStateOf(true) }
     var showWelcome by remember { mutableStateOf(!prefs.getBoolean(KEY_WELCOME_SHOWN, false)) }
@@ -110,6 +115,30 @@ fun HesabYarApp() {
             (context as? Activity)?.finish()
         }
         return
+    }
+
+    DisposableEffect(lifecycleOwner, accessToken, userId) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME && !accessToken.isNullOrBlank()) {
+                scope.launch {
+                    try {
+                        val remote = withContext(Dispatchers.IO) {
+                            SupabaseApi.getTransactions(accessToken)
+                        }
+                        val mapped = remote.map { t ->
+                            Transaction(t.title, t.amount, t.income, t.category, t.date, t.id)
+                        }
+                        transactions = mapped
+                        saveTransactions(context, mapped)
+                        syncMessage = ""
+                    } catch (e: Exception) {
+                        syncMessage = e.message ?: "خطا در تازه‌سازی اطلاعات"
+                    }
+                }
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     LaunchedEffect(accessToken, userId) {
