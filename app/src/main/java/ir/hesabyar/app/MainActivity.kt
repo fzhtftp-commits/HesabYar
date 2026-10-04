@@ -98,7 +98,7 @@ fun HesabYarApp() {
                     Card(Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(18.dp)) {
                             Text("موجودی / سود", style = MaterialTheme.typography.labelLarge)
-                            Text("\${formatter.format(balance)} تومان", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                            Text("${formatter.format(balance)} تومان", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -121,11 +121,11 @@ fun HesabYarApp() {
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                 Column(Modifier.weight(1f)) {
                                     Text(transaction.title, fontWeight = FontWeight.Bold)
-                                    Text("\${transaction.category} • \${transaction.date}", style = MaterialTheme.typography.bodySmall)
+                                    Text("${transaction.category} • ${transaction.date}", style = MaterialTheme.typography.bodySmall)
                                 }
                                 Text(
-                                    if (transaction.income) "+\${formatter.format(transaction.amount)}"
-                                    else "-\${formatter.format(transaction.amount)}",
+                                    if (transaction.income) "+${formatter.format(transaction.amount)}"
+                                    else "-${formatter.format(transaction.amount)}",
                                     fontWeight = FontWeight.Bold
                                 )
                             }
