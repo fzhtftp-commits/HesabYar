@@ -74,9 +74,10 @@ function download(name,content,type){
 }
 document.getElementById("exportBtn").onclick=()=>{
  const rows=[["عنوان","مبلغ","نوع","دسته‌بندی","تاریخ"],...transactions.map(x=>[x.title,x.amount,x.income?"درآمد":"هزینه",x.category||"عمومی",x.date])];
- const csv="\ufeff"+rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(",")).join("\n");
- download("hesabyar-transactions.csv",csv,"text/csv;charset=utf-8");
+ const table="<html><head><meta charset="utf-8"></head><body><table border="1">"+rows.map(r=>"<tr>"+r.map(v=>"<td>"+esc(v)+"</td>").join("")+"</tr>").join("")+"</table></body></html>";
+ download("hesabyar-transactions.xls","\ufeff"+table,"application/vnd.ms-excel;charset=utf-8");
 };
+
 document.getElementById("backupBtn").onclick=()=>download("hesabyar-backup.json",JSON.stringify(transactions,null,2),"application/json;charset=utf-8");
 document.getElementById("clearBtn").onclick=()=>{
  if(confirm("همه تراکنش‌ها حذف شوند؟ این کار قابل برگشت نیست.")){transactions=[];save();render()}
