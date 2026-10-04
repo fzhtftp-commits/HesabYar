@@ -4,12 +4,14 @@ import android.content.Context
 import android.os.Bundle
 import android.content.Intent
 import androidx.activity.ComponentActivity
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -91,6 +93,30 @@ fun HesabYarApp() {
     var search by remember { mutableStateOf("") }
     var filter by remember { mutableStateOf("all") }
 
+    val csvLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("text/csv")
+    ) { uri ->
+        if (uri != null) {
+            val csv = buildString {
+                append("\uFEFF")
+                append("عنوان,مبلغ,نوع,دسته‌بندی,تاریخ\n")
+                transactions.forEach { t ->
+                    val title = t.title.replace("\"", "\"\"")
+                    val category = t.category.replace("\"", "\"\"")
+                    val type = if (t.income) "درآمد" else "هزینه"
+                    append("\"" + title + "\"," + t.amount + "," + type + ",\"" + category + "\",\"" + t.date + "\"\n")
+                }
+            }
+            try {
+                context.contentResolver.openOutputStream(uri)?.use { output ->
+                    output.write(csv.toByteArray(Charsets.UTF_8))
+                }
+            } catch (_: Exception) {
+                // The user can retry export if the selected location is unavailable.
+            }
+        }
+    )
+
     val income = transactions.filter { it.income }.sumOf { it.amount }
     val expense = transactions.filter { !it.income }.sumOf { it.amount }
     val balance = income - expense
@@ -163,13 +189,7 @@ fun HesabYarApp() {
                 item {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         OutlinedButton({
-                            val csv = buildString {
-                                append("عنوان,مبلغ,نوع,دسته‌بندی,تاریخ\n")
-                                transactions.forEach { t ->
-                                    append(t.title + "," + t.amount + "," + if (t.income) "درآمد" else "هزینه" + "," + t.category + "," + t.date + "\n")
-                                }
-                            }
-                            shareText(context, "حساب‌یار - Excel", csv, "text/csv")
+                            csvLauncher.launch("HesabYar_" + SimpleDateFormat("yyyyMMdd_HHmm", Locale.US).format(Date()) + ".csv")
                         }, Modifier.weight(1f)) { Text("خروجی Excel") }
                         OutlinedButton({
                             val arr = JSONArray()
