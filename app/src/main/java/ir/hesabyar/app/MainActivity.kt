@@ -2,6 +2,7 @@ package ir.hesabyar.app
 
 import android.content.Context
 import android.os.Bundle
+import android.content.Intent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
@@ -39,6 +40,14 @@ class MainActivity : ComponentActivity() {
 
 private const val PREFS = "hesabyar_data"
 private const val KEY_TRANSACTIONS = "transactions"
+
+private fun shareText(context: Context, subject: String, text: String, mime: String) {
+    context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply {
+        type = mime
+        putExtra(Intent.EXTRA_SUBJECT, subject)
+        putExtra(Intent.EXTRA_TEXT, text)
+    }, "اشتراک‌گذاری"))
+}
 
 private fun loadTransactions(context: Context): List<Transaction> {
     val raw = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
@@ -79,11 +88,24 @@ fun HesabYarApp() {
     var showDialog by remember { mutableStateOf(false) }
     var editingIndex by remember { mutableStateOf<Int?>(null) }
     var isIncome by remember { mutableStateOf(true) }
+    var search by remember { mutableStateOf("") }
+    var filter by remember { mutableStateOf("all") }
 
     val income = transactions.filter { it.income }.sumOf { it.amount }
     val expense = transactions.filter { !it.income }.sumOf { it.amount }
     val balance = income - expense
     val formatter = DecimalFormat("#,###")
+    val nowMonth = SimpleDateFormat("yyyy/MM", Locale.US).format(Date())
+    val monthItems = transactions.filter { it.date.startsWith(nowMonth) }
+    val monthIncome = monthItems.filter { it.income }.sumOf { it.amount }
+    val monthExpense = monthItems.filter { !it.income }.sumOf { it.amount }
+    val monthProfit = monthIncome - monthExpense
+    val maxMonth = maxOf(monthIncome, monthExpense, 1L)
+    val visibleTransactions = transactions.filter {
+        val textMatch = search.isBlank() || it.title.contains(search, true) || it.category.contains(search, true)
+        val filterMatch = filter == "all" || (filter == "income" && it.income) || (filter == "expense" && !it.income)
+        textMatch && filterMatch
+    }
 
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
         Scaffold(topBar = {
@@ -114,8 +136,63 @@ fun HesabYarApp() {
                         OutlinedButton({ isIncome = false; editingIndex = null; showDialog = true }, Modifier.weight(1f)) { Text("➖ ثبت هزینه") }
                     }
                 }
-                item { Text("تراکنش‌ها", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold) }
-                itemsIndexed(transactions) { index, transaction ->
+                item {
+                    Card(Modifier.fillMaxWidth()) {
+                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                            Text("گزارش ماه جاری", fontWeight = FontWeight.Bold)
+                            Text("درآمد ماه: " + formatter.format(monthIncome) + " تومان")
+                            Text("هزینه ماه: " + formatter.format(monthExpense) + " تومان")
+                            Text("سود ماه: " + formatter.format(monthProfit) + " تومان")
+                            Text("نمودار درآمد")
+                            LinearProgressIndicator(progress = { (monthIncome.toFloat() / maxMonth).coerceIn(0f, 1f) }, modifier = Modifier.fillMaxWidth())
+                            Text("نمودار هزینه")
+                            LinearProgressIndicator(progress = { (monthExpense.toFloat() / maxMonth).coerceIn(0f, 1f) }, modifier = Modifier.fillMaxWidth())
+                        }
+                    }
+                }
+                item {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedTextField(search, { search = it }, modifier = Modifier.fillMaxWidth(), label = { Text("جستجوی عنوان یا دسته‌بندی") }, singleLine = true)
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            FilterButton("همه", filter == "all", Modifier.weight(1f)) { filter = "all" }
+                            FilterButton("درآمد", filter == "income", Modifier.weight(1f)) { filter = "income" }
+                            FilterButton("هزینه", filter == "expense", Modifier.weight(1f)) { filter = "expense" }
+                        }
+                    }
+                }
+                item {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        OutlinedButton({
+                            val csv = buildString {
+                                append("عنوان,مبلغ,نوع,دسته‌بندی,تاریخ\n")
+                                transactions.forEach { t ->
+                                    append(t.title + "," + t.amount + "," + if (t.income) "درآمد" else "هزینه" + "," + t.category + "," + t.date + "\n")
+                                }
+                            }
+                            shareText(context, "حساب‌یار - Excel", csv, "text/csv")
+                        }, Modifier.weight(1f)) { Text("خروجی Excel") }
+                        OutlinedButton({
+                            val arr = JSONArray()
+                            transactions.forEach { t ->
+                                arr.put(JSONObject().apply {
+                                    put("title", t.title); put("amount", t.amount); put("income", t.income)
+                                    put("category", t.category); put("date", t.date)
+                                })
+                            }
+                            shareText(context, "پشتیبان حساب‌یار", arr.toString(2), "application/json")
+                        }, Modifier.weight(1f)) { Text("پشتیبان JSON") }
+                    }
+                }
+                item {
+                    OutlinedButton({
+                        transactions = emptyList()
+                        saveTransactions(context, emptyList())
+                    }, Modifier.fillMaxWidth()) { Text("پاک‌کردن همه تراکنش‌ها") }
+                }
+                item { Text("تراکنش‌ها (" + visibleTransactions.size + ")", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold) }
+
+                itemsIndexed(visibleTransactions) { _, transaction ->
+                    val index = transactions.indexOf(transaction)
                     Card(Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(12.dp)) {
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -167,6 +244,12 @@ fun HesabYarApp() {
             }
         )
     }
+}
+
+@Composable
+fun FilterButton(title: String, selected: Boolean, modifier: Modifier, onClick: () -> Unit) {
+    if (selected) Button(onClick, modifier) { Text(title) }
+    else OutlinedButton(onClick, modifier) { Text(title) }
 }
 
 @Composable
