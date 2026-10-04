@@ -136,10 +136,8 @@ fun HesabYarApp() {
             prefs.edit().putBoolean(KEY_WELCOME_SHOWN, true).apply()
             showWelcome = false
         }
-        return@Composable
-    }
-
-    val visibleTransactions = transactions.filter {
+    } else {
+        val visibleTransactions = transactions.filter {
         val textMatch = search.isBlank() || it.title.contains(search, true) || it.category.contains(search, true)
         val filterMatch = filter == "all" || (filter == "income" && it.income) || (filter == "expense" && !it.income)
         textMatch && filterMatch
@@ -275,6 +273,7 @@ fun HesabYarApp() {
                 editingIndex = null
             }
         )
+    }
     }
 }
 
