@@ -1,6 +1,7 @@
 package ir.hesabyar.app
 
 import android.content.Context
+import android.app.Activity
 import android.os.Bundle
 import android.content.Intent
 import androidx.activity.ComponentActivity
@@ -24,6 +25,9 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -32,7 +36,8 @@ data class Transaction(
     val amount: Long,
     val income: Boolean,
     val category: String,
-    val date: String
+    val date: String,
+    val remoteId: Long? = null
 )
 
 class MainActivity : ComponentActivity() {
@@ -65,7 +70,7 @@ private fun loadTransactions(context: Context): List<Transaction> {
         List(arr.length()) { i ->
             val o = arr.getJSONObject(i)
             Transaction(o.getString("title"), o.getLong("amount"), o.getBoolean("income"),
-                o.optString("category", "عمومی"), o.optString("date", "امروز"))
+                o.optString("category", "عمومی"), o.optString("date", "امروز"), o.optLong("remoteId").takeIf { it != 0L })
         }
     } catch (_: Exception) { emptyList() }
 }
@@ -79,6 +84,7 @@ private fun saveTransactions(context: Context, list: List<Transaction>) {
             put("income", it.income)
             put("category", it.category)
             put("date", it.date)
+            it.remoteId?.let { id -> put("remoteId", id) }
         })
     }
     context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
@@ -90,9 +96,53 @@ private fun saveTransactions(context: Context, list: List<Transaction>) {
 fun HesabYarApp() {
     val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences(PREFS, Context.MODE_PRIVATE) }
+    val scope = rememberCoroutineScope()
+    val accessToken = prefs.getString("supabase_access_token", null)
+    val userId = prefs.getString("supabase_user_id", null)
+    var syncMessage by remember { mutableStateOf("") }
     var showSplash by remember { mutableStateOf(true) }
     var showWelcome by remember { mutableStateOf(!prefs.getBoolean(KEY_WELCOME_SHOWN, false)) }
     var transactions by remember { mutableStateOf(loadTransactions(context)) }
+
+    if (accessToken.isNullOrBlank() || userId.isNullOrBlank()) {
+        LaunchedEffect(Unit) {
+            context.startActivity(Intent(context, LoginActivity::class.java))
+            (context as? Activity)?.finish()
+        }
+        return
+    }
+
+    LaunchedEffect(accessToken, userId) {
+        try {
+            val remote = withContext(Dispatchers.IO) { SupabaseApi.getTransactions(accessToken) }
+            if (remote.isNotEmpty() || !prefs.contains(KEY_TRANSACTIONS)) {
+                val mapped = remote.map { t ->
+                    Transaction(t.title, t.amount, t.income, t.category, t.date, t.id)
+                }
+                transactions = mapped
+                saveTransactions(context, mapped)
+            } else {
+                val local = transactions
+                if (local.isNotEmpty()) {
+                    val migrated = mutableListOf<Transaction>()
+                    local.forEach { localItem ->
+                        try {
+                            val id = withContext(Dispatchers.IO) {
+                                SupabaseApi.insertTransaction(accessToken, localItem, userId)
+                            }
+                            migrated.add(localItem.copy(remoteId = id))
+                        } catch (_: Exception) {
+                            migrated.add(localItem)
+                        }
+                    }
+                    transactions = migrated
+                    saveTransactions(context, migrated)
+                }
+            }
+        } catch (e: Exception) {
+            syncMessage = e.message ?: "خطا در همگام‌سازی"
+        }
+    }
 
     LaunchedEffect(Unit) {
         delay(1500)
@@ -132,7 +182,7 @@ fun HesabYarApp() {
     val expense = transactions.filter { !it.income }.sumOf { it.amount }
     val balance = income - expense
     val formatter = DecimalFormat("#,###")
-    val nowMonth = SimpleDateFormat("yyyy/MM", Locale.US).format(Date())
+    val nowMonth = SimpleDateFormat("yyyy-MM", Locale.US).format(Date())
     val monthItems = transactions.filter { it.date.startsWith(nowMonth) }
     val monthIncome = monthItems.filter { it.income }.sumOf { it.amount }
     val monthExpense = monthItems.filter { !it.income }.sumOf { it.amount }
@@ -162,6 +212,11 @@ fun HesabYarApp() {
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     item { Text("مدیریت مالی کسب‌وکار", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold) }
+                    item {
+                        if (syncMessage.isNotBlank()) {
+                            Text(syncMessage, color = MaterialTheme.colorScheme.error)
+                        }
+                    }
                     item {
                         Card(Modifier.fillMaxWidth()) {
                             Column(Modifier.padding(18.dp)) {
@@ -257,6 +312,15 @@ fun HesabYarApp() {
                                         updated.removeAt(index)
                                         transactions = updated
                                         saveTransactions(context, updated)
+                                        transaction.remoteId?.let { remoteId ->
+                                            scope.launch {
+                                                try {
+                                                    withContext(Dispatchers.IO) { SupabaseApi.deleteTransaction(accessToken, remoteId) }
+                                                } catch (e: Exception) {
+                                                    syncMessage = e.message ?: "خطا در حذف ابری"
+                                                }
+                                            }
+                                        }
                                     }) { Text("حذف") }
                                 }
                             }
@@ -274,11 +338,34 @@ fun HesabYarApp() {
                 onSave = { title, amount, category ->
                     val date = SimpleDateFormat("yyyy/MM/dd HH:mm", Locale.US).format(Date())
                     val updated = transactions.toMutableList()
-                    val item = Transaction(title, amount, isIncome, category, date)
                     val edit = editingIndex
+                    val existing = edit?.let { transactions[it] }
+                    val item = Transaction(title, amount, isIncome, category, date, existing?.remoteId)
                     if (edit == null) updated.add(0, item) else updated[edit] = item
                     transactions = updated
                     saveTransactions(context, updated)
+                    scope.launch {
+                        try {
+                            if (existing?.remoteId != null) {
+                                withContext(Dispatchers.IO) {
+                                    SupabaseApi.updateTransaction(accessToken, existing.remoteId, item)
+                                }
+                            } else {
+                                val id = withContext(Dispatchers.IO) {
+                                    SupabaseApi.insertTransaction(accessToken, item, userId)
+                                }
+                                val current = transactions.toMutableList()
+                                val target = if (edit == null) 0 else edit
+                                if (target in current.indices) {
+                                    current[target] = current[target].copy(remoteId = id)
+                                    transactions = current
+                                    saveTransactions(context, current)
+                                }
+                            }
+                        } catch (e: Exception) {
+                            syncMessage = e.message ?: "ذخیره ابری انجام نشد"
+                        }
+                    }
                     showDialog = false
                     editingIndex = null
                 }
