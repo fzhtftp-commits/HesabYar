@@ -119,6 +119,7 @@ fun HesabYarApp() {
                 // The user can retry export if the selected location is unavailable.
             }
         }
+    }
     )
 
     val income = transactions.filter { it.income }.sumOf { it.amount }
