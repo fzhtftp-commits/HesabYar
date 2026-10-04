@@ -276,7 +276,7 @@ fun HesabYarApp() {
     }
     }
 }
-
+}
 
 @Composable
 fun WelcomeScreen(onStart: () -> Unit) {
