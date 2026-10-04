@@ -23,6 +23,7 @@ import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlinx.coroutines.delay
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -89,8 +90,14 @@ private fun saveTransactions(context: Context, list: List<Transaction>) {
 fun HesabYarApp() {
     val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences(PREFS, Context.MODE_PRIVATE) }
+    var showSplash by remember { mutableStateOf(true) }
     var showWelcome by remember { mutableStateOf(!prefs.getBoolean(KEY_WELCOME_SHOWN, false)) }
     var transactions by remember { mutableStateOf(loadTransactions(context)) }
+
+    LaunchedEffect(Unit) {
+        delay(1500)
+        showSplash = false
+    }
     var showDialog by remember { mutableStateOf(false) }
     var editingIndex by remember { mutableStateOf<Int?>(null) }
     var isIncome by remember { mutableStateOf(true) }
@@ -132,7 +139,9 @@ fun HesabYarApp() {
     val monthProfit = monthIncome - monthExpense
     val maxMonth = maxOf(monthIncome, monthExpense, 1L)
 
-    if (showWelcome) {
+    if (showSplash) {
+        SplashScreen()
+    } else if (showWelcome) {
         WelcomeScreen {
             prefs.edit().putBoolean(KEY_WELCOME_SHOWN, true).apply()
             showWelcome = false
@@ -274,6 +283,48 @@ fun HesabYarApp() {
                     editingIndex = null
                 }
             )
+        }
+    }
+}
+
+@Composable
+fun SplashScreen() {
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+        Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+            Column(
+                Modifier.fillMaxSize().padding(28.dp),
+                horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Surface(
+                    modifier = Modifier.size(128.dp),
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.primary
+                ) {
+                    Box(contentAlignment = androidx.compose.ui.Alignment.Center) {
+                        Text(
+                            "₿",
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            style = MaterialTheme.typography.displayLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+                Spacer(Modifier.height(24.dp))
+                Text(
+                    "حساب‌یار",
+                    style = MaterialTheme.typography.displaySmall,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    "مدیریت هوشمند حساب‌های شما",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(Modifier.height(28.dp))
+                CircularProgressIndicator(modifier = Modifier.size(28.dp))
+            }
         }
     }
 }
