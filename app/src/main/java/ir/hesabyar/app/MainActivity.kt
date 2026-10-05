@@ -8,6 +8,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -17,6 +18,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.LayoutDirection
@@ -456,11 +458,10 @@ fun SplashScreen() {
                     color = MaterialTheme.colorScheme.primary
                 ) {
                     Box(contentAlignment = androidx.compose.ui.Alignment.Center) {
-                        Text(
-                            "₿",
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            style = MaterialTheme.typography.displayLarge,
-                            fontWeight = FontWeight.Bold
+                        Image(
+                            painter = painterResource(id = R.drawable.hesabyar_logo),
+                            contentDescription = "لوگوی حساب‌یار",
+                            modifier = Modifier.fillMaxSize()
                         )
                     }
                 }
@@ -498,7 +499,11 @@ fun WelcomeScreen(onStart: () -> Unit) {
                     color = MaterialTheme.colorScheme.primary
                 ) {
                     Box(contentAlignment = androidx.compose.ui.Alignment.Center) {
-                        Text("₿", color = MaterialTheme.colorScheme.onPrimary, style = MaterialTheme.typography.displayMedium, fontWeight = FontWeight.Bold)
+                        Image(
+                            painter = painterResource(id = R.drawable.hesabyar_logo),
+                            contentDescription = "لوگوی حساب‌یار",
+                            modifier = Modifier.fillMaxSize()
+                        )
                     }
                 }
                 Spacer(Modifier.height(24.dp))
