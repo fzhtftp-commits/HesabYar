@@ -8,8 +8,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.*
@@ -18,7 +16,6 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.LayoutDirection
@@ -451,21 +448,7 @@ fun SplashScreen() {
                 Modifier.fillMaxSize().padding(28.dp),
                 horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
-            ) {
-                Surface(
-                    modifier = Modifier.size(128.dp),
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.primary
-                ) {
-                    Box(contentAlignment = androidx.compose.ui.Alignment.Center) {
-                        Image(
-                            painter = painterResource(id = R.drawable.hesabyar_logo),
-                            contentDescription = "لوگوی حساب‌یار",
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    }
-                }
-                Spacer(Modifier.height(24.dp))
+            ) {Spacer(Modifier.height(24.dp))
                 Text(
                     "حساب‌یار",
                     style = MaterialTheme.typography.displaySmall,
@@ -492,21 +475,7 @@ fun WelcomeScreen(onStart: () -> Unit) {
                 Modifier.fillMaxSize().padding(28.dp),
                 horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
-            ) {
-                Surface(
-                    modifier = Modifier.size(112.dp),
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.primary
-                ) {
-                    Box(contentAlignment = androidx.compose.ui.Alignment.Center) {
-                        Image(
-                            painter = painterResource(id = R.drawable.hesabyar_logo),
-                            contentDescription = "لوگوی حساب‌یار",
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    }
-                }
-                Spacer(Modifier.height(24.dp))
+            ) {Spacer(Modifier.height(24.dp))
                 Text("حساب‌یار", style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(10.dp))
                 Text("به حساب‌یار خوش آمدید", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
