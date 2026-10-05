@@ -39,6 +39,7 @@ Deno.serve(async (req) => {
     }
 
     const adminClient = createClient(supabaseUrl, serviceKey);
+    const requestedUserId = new URL(req.url).searchParams.get("user_id");
 
     const { data: usersData, error: usersError } =
       await adminClient.auth.admin.listUsers({ page: 1, perPage: 1000 });
@@ -80,6 +81,27 @@ Deno.serve(async (req) => {
         expense: stats.expense,
       };
     });
+
+    if (requestedUserId) {
+      const selected = users.find((u) => u.id === requestedUserId);
+      if (!selected) {
+        return json({ error: "کاربر پیدا نشد." }, 404);
+      }
+
+      const { data: userTransactions, error: userTxError } =
+        await adminClient
+          .from("transactions")
+          .select("id,title,amount,type,description,transaction_date,created_at")
+          .eq("user_id", requestedUserId)
+          .order("created_at", { ascending: false });
+
+      if (userTxError) throw userTxError;
+
+      return json({
+        user: selected,
+        transactions: userTransactions || [],
+      }, 200);
+    }
 
     return json({
       summary: {
