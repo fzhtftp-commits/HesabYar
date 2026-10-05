@@ -46,14 +46,27 @@ data class Transaction(
 )
 
 class MainActivity : ComponentActivity() {
+    private var redirectingToLogin = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        if (!hasValidLogin(this)) {
+            redirectingToLogin = true
+            startActivity(Intent(this, LoginActivity::class.java).apply {
+                putExtra("session_expired", true)
+            })
+            finish()
+            return
+        }
+
         setContent { HesabYarApp() }
     }
 
     override fun onResume() {
         super.onResume()
-        if (!hasValidLogin(this)) {
+        if (!redirectingToLogin && !hasValidLogin(this)) {
+            redirectingToLogin = true
             startActivity(Intent(this, LoginActivity::class.java).apply {
                 putExtra("session_expired", true)
             })
@@ -147,14 +160,6 @@ fun HesabYarApp() {
     var showSplash by remember { mutableStateOf(true) }
     var showWelcome by remember { mutableStateOf(!prefs.getBoolean(KEY_WELCOME_SHOWN, false)) }
     var transactions by remember { mutableStateOf(loadTransactions(context)) }
-
-    if (accessToken.isNullOrBlank() || userId.isNullOrBlank()) {
-        LaunchedEffect(Unit) {
-            context.startActivity(Intent(context, LoginActivity::class.java))
-            (context as? Activity)?.finish()
-        }
-        return
-    }
 
     DisposableEffect(lifecycleOwner, accessToken, userId) {
         val observer = LifecycleEventObserver { _, event ->
