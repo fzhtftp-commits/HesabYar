@@ -179,7 +179,7 @@ object SupabaseApi {
     }
 
     fun deleteAllTransactions(accessToken: String) {
-        val (code, _) = request(
+        val (code, response) = request(
             "DELETE",
             "$BASE_URL/rest/v1/transactions?id=gt.0",
             accessToken
