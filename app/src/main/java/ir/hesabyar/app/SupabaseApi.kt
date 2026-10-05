@@ -17,7 +17,15 @@ object SupabaseApi {
     private const val BASE_URL = "https://cwuncmdfxvanflbunlxx.supabase.co"
     private const val API_KEY = "sb_publishable_mGd-RSSQeGsCMLrsFj5H5g_1xRESlGw"
 
-    private fun errorMessage(code: Int, response: String, fallback: String): String {\n        val detail = runCatching {\n            val json = JSONObject(response)\n            listOf(json.optString("message"), json.optString("msg"), json.optString("error_description"), json.optString("error"), json.optString("details"), json.optString("hint")).firstOrNull { it.isNotBlank() }\n        }.getOrNull()\n        return if (!detail.isNullOrBlank()) "Supabase HTTP $code: ${detail.take(240)}" else "Supabase HTTP $code: ${response.take(240).ifBlank { fallback }}"\n    }\n\n    private fun request(
+    private fun errorMessage(code: Int, response: String, fallback: String): String {
+        val detail = runCatching {
+            val json = JSONObject(response)
+            listOf(json.optString("message"), json.optString("msg"), json.optString("error_description"), json.optString("error"), json.optString("details"), json.optString("hint")).firstOrNull { it.isNotBlank() }
+        }.getOrNull()
+        return if (!detail.isNullOrBlank()) "Supabase HTTP $code: ${detail.take(240)}" else "Supabase HTTP $code: ${response.take(240).ifBlank { fallback }}"
+    }
+
+    private fun request(
         method: String,
         url: String,
         accessToken: String? = null,
@@ -71,6 +79,22 @@ object SupabaseApi {
             json.getString("refresh_token"),
             json.getJSONObject("user").getString("id")
         )
+    }
+
+    fun signUp(email: String, password: String): Boolean {
+        val body = JSONObject().apply {
+            put("email", email)
+            put("password", password)
+        }.toString()
+        val (code, response) = try {
+            request("POST", "$BASE_URL/auth/v1/signup", body = body)
+        } catch (e: Exception) {
+            throw IllegalStateException("شبکه: ${e.message ?: "اتصال به سرور برقرار نشد."}")
+        }
+        if (code !in 200..299) {
+            throw IllegalStateException(errorMessage(code, response, "ثبت‌نام ناموفق بود."))
+        }
+        return true
     }
 
     fun refresh(refreshToken: String): SupabaseSession {
@@ -135,7 +159,7 @@ object SupabaseApi {
             put("description", transaction.category)
             put("transaction_date", transaction.date.take(10))
         }.toString()
-        val (code, _) = request(
+        val (code, response) = request(
             "PATCH",
             "$BASE_URL/rest/v1/transactions?id=eq.$transactionId",
             accessToken,
@@ -146,7 +170,7 @@ object SupabaseApi {
     }
 
     fun deleteTransaction(accessToken: String, transactionId: Long) {
-        val (code, _) = request(
+        val (code, response) = request(
             "DELETE",
             "$BASE_URL/rest/v1/transactions?id=eq.$transactionId",
             accessToken
