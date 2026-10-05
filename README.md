@@ -14,4 +14,4 @@
 
 Workflow از Java 17 و Gradle 8.11 استفاده می‌کند و APK Debug تولید می‌کند.
 
-<!-- Runner test: 2026-10-05 -->
+<!-- Fresh runner test: 2026-10-05 -->
