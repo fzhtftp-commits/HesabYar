@@ -36,9 +36,9 @@ function date(s){if(!s)return "—";const d=new Date(s);return isNaN(d)?s:d.toLo
 function render(){
   const q=$("search").value.trim().toLowerCase();
   const list=rows.filter(x=>(x.email||"").toLowerCase().includes(q));
-  $("usersBody").innerHTML=list.map(x=>'<tr class="clickable-row" data-user-id="'+esc(x.id)+'"><td class="user-link">'+esc(x.email||"—")+'</td><td>'+date(x.created_at)+'</td><td>'+date(x.last_sign_in_at)+'</td><td>'+fmt(x.transaction_count)+'</td><td>'+fmt(x.income)+'</td><td>'+fmt(x.expense)+'</td></tr>').join("");
-  document.querySelectorAll(".clickable-row").forEach(row=>{
-    row.addEventListener("click",()=>openUserDetails(row.dataset.userId));
+  $("usersBody").innerHTML=list.map(x=>'<tr><td class="user-link">'+esc(x.email||"—")+'</td><td>'+date(x.created_at)+'</td><td>'+date(x.last_sign_in_at)+'</td><td>'+fmt(x.transaction_count)+'</td><td>'+fmt(x.income)+'</td><td>'+fmt(x.expense)+'</td><td><button type="button" class="details-btn" data-user-id="'+esc(x.id)+'">مشاهده جزئیات</button></td></tr>').join("");
+  document.querySelectorAll(".details-btn").forEach(btn=>{
+    btn.addEventListener("click",()=>openUserDetails(btn.dataset.userId));
   });
   $("empty").classList.toggle("hidden",list.length!==0);
 }
