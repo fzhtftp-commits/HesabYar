@@ -42,7 +42,6 @@ class LoginActivity : ComponentActivity() {
                 ) {
                     Text("حساب‌یار", style = MaterialTheme.typography.displaySmall, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
                     Spacer(Modifier.height(16.dp))
-)
                     Text(
                         if (registerMode) "ایجاد حساب جدید" else "ورود به حساب‌یار",
                         style = MaterialTheme.typography.headlineMedium
