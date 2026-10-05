@@ -113,8 +113,9 @@ object SupabaseApi {
         )
     }
 
-    fun getTransactions(accessToken: String): List<RemoteTransaction> {
-        val url = "$BASE_URL/rest/v1/transactions?select=id,title,amount,type,description,transaction_date&order=created_at.desc"
+    fun getTransactions(accessToken: String, userId: String): List<RemoteTransaction> {
+        val encodedUserId = java.net.URLEncoder.encode(userId, "UTF-8")
+        val url = "$BASE_URL/rest/v1/transactions?select=id,title,amount,type,description,transaction_date&user_id=eq.$encodedUserId&order=created_at.desc"
         val (code, response) = request("GET", url, accessToken)
         if (code !in 200..299) throw IllegalStateException(errorMessage(code, response, "دریافت اطلاعات حسابداری ناموفق بود."))
         val arr = JSONArray(response)
