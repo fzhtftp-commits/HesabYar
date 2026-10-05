@@ -27,7 +27,6 @@ import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -138,7 +137,6 @@ fun HesabYarApp(initialSplash: Boolean = true) {
     val userId = prefs.getString("supabase_user_id", null) ?: return
     val lifecycleOwner = LocalLifecycleOwner.current
     var syncMessage by remember { mutableStateOf("") }
-    var showSplash by remember { mutableStateOf(initialSplash) }
     var showWelcome by remember { mutableStateOf(!prefs.getBoolean(KEY_WELCOME_SHOWN, false)) }
     var transactions by remember { mutableStateOf(loadTransactions(context)) }
 
@@ -198,10 +196,6 @@ fun HesabYarApp(initialSplash: Boolean = true) {
         }
     }
 
-    LaunchedEffect(Unit) {
-        delay(1500)
-        showSplash = false
-    }
     var showDialog by remember { mutableStateOf(false) }
     var editingIndex by remember { mutableStateOf<Int?>(null) }
     var isIncome by remember { mutableStateOf(true) }
@@ -243,9 +237,7 @@ fun HesabYarApp(initialSplash: Boolean = true) {
     val monthProfit = monthIncome - monthExpense
     val maxMonth = maxOf(monthIncome, monthExpense, 1L)
 
-    if (showSplash) {
-        SplashScreen()
-    } else if (showWelcome) {
+    if (showWelcome) {
         WelcomeScreen {
             prefs.edit().putBoolean(KEY_WELCOME_SHOWN, true).apply()
             showWelcome = false
@@ -430,17 +422,9 @@ fun HesabYarApp(initialSplash: Boolean = true) {
 
 @Composable
 fun StartupScreen() {
-    var ready by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
-    LaunchedEffect(Unit) {
-        delay(1200)
-        ready = true
-    }
-
-    if (!ready) {
-        SplashScreen()
-    } else if (hasValidLogin(context)) {
+    if (hasValidLogin(context)) {
         HesabYarApp(initialSplash = false)
     } else {
         LaunchedEffect(Unit) {
@@ -474,7 +458,16 @@ fun WelcomeScreen(onStart: () -> Unit) {
                 Modifier.fillMaxSize().padding(28.dp),
                 horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
-            ) {Spacer(Modifier.height(24.dp))
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.hesabyar_splash),
+                    contentDescription = "تصویر حساب‌یار",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(190.dp),
+                    contentScale = ContentScale.Fit
+                )
+                Spacer(Modifier.height(18.dp))
                 Text("حساب‌یار", style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(10.dp))
                 Text("به حساب‌یار خوش آمدید", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
