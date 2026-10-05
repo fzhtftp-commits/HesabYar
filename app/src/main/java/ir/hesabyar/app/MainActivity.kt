@@ -46,13 +46,13 @@ data class Transaction(
 )
 
 class MainActivity : ComponentActivity() {
-    private var redirectingToLogin = false
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // فقط هنگام ایجاد واقعی MainActivity اعتبار جلسه را بررسی می‌کنیم.
+        // بررسی onResume حذف شده تا بعد از ورود، بین LoginActivity و MainActivity
+        // یک redirect ناخواسته ایجاد نشود.
         if (!hasValidLogin(this)) {
-            redirectingToLogin = true
             startActivity(Intent(this, LoginActivity::class.java).apply {
                 putExtra("session_expired", true)
             })
@@ -61,17 +61,6 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent { HesabYarApp() }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        if (!redirectingToLogin && !hasValidLogin(this)) {
-            redirectingToLogin = true
-            startActivity(Intent(this, LoginActivity::class.java).apply {
-                putExtra("session_expired", true)
-            })
-            finish()
-        }
     }
 }
 
