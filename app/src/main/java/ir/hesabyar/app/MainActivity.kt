@@ -49,11 +49,49 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent { HesabYarApp() }
     }
+
+    override fun onResume() {
+        super.onResume()
+        if (!hasValidLogin(this)) {
+            startActivity(Intent(this, LoginActivity::class.java).apply {
+                putExtra("session_expired", true)
+            })
+            finish()
+        }
+    }
 }
 
 private const val PREFS = "hesabyar_data"
 private const val KEY_TRANSACTIONS = "transactions"
 private const val KEY_WELCOME_SHOWN = "welcome_shown"
+private const val KEY_LOGIN_AT = "supabase_login_at"
+private const val LOGIN_TIMEOUT_MS = 24L * 60L * 60L * 1000L
+
+private fun hasValidLogin(context: Context): Boolean {
+    val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+    val accessToken = prefs.getString("supabase_access_token", null)
+    val userId = prefs.getString("supabase_user_id", null)
+
+    if (accessToken.isNullOrBlank() || userId.isNullOrBlank()) return false
+
+    val loginAt = prefs.getLong(KEY_LOGIN_AT, 0L)
+    if (loginAt <= 0L) {
+        prefs.edit().putLong(KEY_LOGIN_AT, System.currentTimeMillis()).apply()
+        return true
+    }
+
+    if (System.currentTimeMillis() - loginAt >= LOGIN_TIMEOUT_MS) {
+        prefs.edit()
+            .remove("supabase_access_token")
+            .remove("supabase_refresh_token")
+            .remove("supabase_user_id")
+            .remove(KEY_LOGIN_AT)
+            .apply()
+        return false
+    }
+
+    return true
+}
 
 private fun shareText(context: Context, subject: String, text: String, mime: String) {
     context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply {
