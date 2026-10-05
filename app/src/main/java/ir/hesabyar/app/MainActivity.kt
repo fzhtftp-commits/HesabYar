@@ -16,6 +16,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.DisposableEffect
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -453,34 +454,15 @@ fun StartupScreen() {
 
 @Composable
 fun SplashScreen() {
-    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
-        Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-            Column(
-                Modifier.fillMaxSize().padding(28.dp),
-                horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.hesabyar_logo),
-                    contentDescription = "لوگوی حساب‌یار",
-                    modifier = Modifier.size(210.dp)
-                )
-                Spacer(Modifier.height(20.dp))
-                Text(
-                    "حساب‌یار",
-                    style = MaterialTheme.typography.displaySmall,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    "مدیریت هوشمند حساب‌های شما",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(Modifier.height(28.dp))
-                CircularProgressIndicator(modifier = Modifier.size(28.dp))
-            }
-        }
+    // تصویر اصلی اسپلش حساب‌یار؛ بدون لوگوی جداگانه یا محتوای اضافی.
+    // StartupScreen این صفحه را در هر بار اجرای MainActivity به مدت کوتاه نمایش می‌دهد.
+    Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+        Image(
+            painter = painterResource(id = R.drawable.hesabyar_splash),
+            contentDescription = "صفحه شروع حساب‌یار",
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Fit
+        )
     }
 }
 
