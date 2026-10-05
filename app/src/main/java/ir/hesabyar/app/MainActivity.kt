@@ -48,19 +48,10 @@ data class Transaction(
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // فقط هنگام ایجاد واقعی MainActivity اعتبار جلسه را بررسی می‌کنیم.
-        // بررسی onResume حذف شده تا بعد از ورود، بین LoginActivity و MainActivity
-        // یک redirect ناخواسته ایجاد نشود.
-        if (!hasValidLogin(this)) {
-            startActivity(Intent(this, LoginActivity::class.java).apply {
-                putExtra("session_expired", true)
-            })
-            finish()
-            return
-        }
-
-        setContent { HesabYarApp() }
+        // همیشه ابتدا یک Splash امن و مستقل نمایش داده می‌شود.
+        // بعد از آن وضعیت ورود بررسی می‌شود تا LoginActivity/MainActivity
+        // در لحظه ورود باعث خروج ناگهانی برنامه نشوند.
+        setContent { StartupScreen() }
     }
 }
 
@@ -138,7 +129,7 @@ private fun saveTransactions(context: Context, list: List<Transaction>) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HesabYarApp() {
+fun HesabYarApp(initialSplash: Boolean = true) {
     val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences(PREFS, Context.MODE_PRIVATE) }
     val scope = rememberCoroutineScope()
@@ -146,7 +137,7 @@ fun HesabYarApp() {
     val userId = prefs.getString("supabase_user_id", null) ?: return
     val lifecycleOwner = LocalLifecycleOwner.current
     var syncMessage by remember { mutableStateOf("") }
-    var showSplash by remember { mutableStateOf(true) }
+    var showSplash by remember { mutableStateOf(initialSplash) }
     var showWelcome by remember { mutableStateOf(!prefs.getBoolean(KEY_WELCOME_SHOWN, false)) }
     var transactions by remember { mutableStateOf(loadTransactions(context)) }
 
@@ -437,6 +428,30 @@ fun HesabYarApp() {
 }
 
 @Composable
+fun StartupScreen() {
+    var ready by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        delay(1200)
+        ready = true
+    }
+
+    if (!ready) {
+        SplashScreen()
+    } else if (hasValidLogin(context)) {
+        HesabYarApp(initialSplash = false)
+    } else {
+        LaunchedEffect(Unit) {
+            context.startActivity(Intent(context, LoginActivity::class.java).apply {
+                putExtra("session_expired", true)
+            })
+            (context as? Activity)?.finish()
+        }
+    }
+}
+
+@Composable
 fun SplashScreen() {
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
@@ -446,7 +461,7 @@ fun SplashScreen() {
                 verticalArrangement = Arrangement.Center
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.hesabyar_splash),
+                    painter = painterResource(id = R.drawable.hesabyar_logo),
                     contentDescription = "لوگوی حساب‌یار",
                     modifier = Modifier.size(210.dp)
                 )
