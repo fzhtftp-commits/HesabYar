@@ -36,7 +36,10 @@ function date(s){if(!s)return "—";const d=new Date(s);return isNaN(d)?s:d.toLo
 function render(){
   const q=$("search").value.trim().toLowerCase();
   const list=rows.filter(x=>(x.email||"").toLowerCase().includes(q));
-  $("usersBody").innerHTML=list.map(x=>'<tr><td>'+esc(x.email||"—")+'</td><td>'+date(x.created_at)+'</td><td>'+date(x.last_sign_in_at)+'</td><td>'+fmt(x.transaction_count)+'</td><td>'+fmt(x.income)+'</td><td>'+fmt(x.expense)+'</td></tr>').join("");
+  $("usersBody").innerHTML=list.map(x=>'<tr class="clickable-row" data-user-id="'+esc(x.id)+'"><td class="user-link">'+esc(x.email||"—")+'</td><td>'+date(x.created_at)+'</td><td>'+date(x.last_sign_in_at)+'</td><td>'+fmt(x.transaction_count)+'</td><td>'+fmt(x.income)+'</td><td>'+fmt(x.expense)+'</td></tr>').join("");
+  document.querySelectorAll(".clickable-row").forEach(row=>{
+    row.addEventListener("click",()=>openUserDetails(row.dataset.userId));
+  });
   $("empty").classList.toggle("hidden",list.length!==0);
 }
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]))}
@@ -49,6 +52,53 @@ $("loginForm").addEventListener("submit",async e=>{
 $("logoutBtn").onclick=()=>{setSession(null);location.reload()};
 $("refreshBtn").onclick=()=>loadDashboard().catch(e=>$("status").textContent=e.message);
 $("search").oninput=render;
+
+function openModal(){
+  $("userModal").classList.remove("hidden");
+  document.body.style.overflow="hidden";
+}
+function closeModal(){
+  $("userModal").classList.add("hidden");
+  document.body.style.overflow="";
+}
+$("closeModal").onclick=closeModal;
+$("modalBackdrop").onclick=closeModal;
+
+async function openUserDetails(userId){
+  if(!userId)return;
+  const user=rows.find(x=>x.id===userId);
+  if(!user)return;
+
+  $("detailEmail").textContent=user.email||"کاربر";
+  $("detailMeta").textContent="ثبت‌نام: "+date(user.created_at)+"  |  آخرین ورود: "+date(user.last_sign_in_at);
+  $("detailCount").textContent=fmt(user.transaction_count);
+  $("detailIncome").textContent=fmt(user.income);
+  $("detailExpense").textContent=fmt(user.expense);
+  $("detailBalance").textContent=fmt(Number(user.income||0)-Number(user.expense||0));
+  $("detailStatus").textContent="در حال دریافت تراکنش‌ها...";
+  $("detailTransactions").innerHTML="";
+  $("detailEmpty").classList.add("hidden");
+  openModal();
+
+  try{
+    const data=await api("/functions/v1/admin-dashboard?user_id="+encodeURIComponent(userId));
+    const txs=data.transactions||[];
+    $("detailStatus").textContent="";
+    $("detailCount").textContent=fmt(txs.length);
+    $("detailIncome").textContent=fmt(data.user?.income);
+    $("detailExpense").textContent=fmt(data.user?.expense);
+    $("detailBalance").textContent=fmt(Number(data.user?.income||0)-Number(data.user?.expense||0));
+
+    $("detailTransactions").innerHTML=txs.map(t=>{
+      const income=t.type==="income";
+      return '<tr><td>'+esc(t.title||"—")+'</td><td>'+ (income?"درآمد":"هزینه") +'</td><td>'+fmt(t.amount)+'</td><td>'+esc(t.description||"—")+'</td><td>'+date(t.transaction_date||t.created_at)+'</td></tr>';
+    }).join("");
+    $("detailEmpty").classList.toggle("hidden",txs.length!==0);
+  }catch(e){
+    $("detailStatus").textContent=e.message;
+  }
+}
+
 async function showPanel(){
   const s=session(); if(!s){return}
   $("loginScreen").classList.add("hidden");$("panel").classList.remove("hidden");
