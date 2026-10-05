@@ -8,6 +8,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.*
@@ -16,6 +17,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.LayoutDirection
@@ -448,7 +450,13 @@ fun SplashScreen() {
                 Modifier.fillMaxSize().padding(28.dp),
                 horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
-            ) {Spacer(Modifier.height(24.dp))
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.hesabyar_logo),
+                    contentDescription = "لوگوی حساب‌یار",
+                    modifier = Modifier.size(210.dp)
+                )
+                Spacer(Modifier.height(20.dp))
                 Text(
                     "حساب‌یار",
                     style = MaterialTheme.typography.displaySmall,
