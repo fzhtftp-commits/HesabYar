@@ -54,6 +54,45 @@
   </section>
 </main>
 </div>
+
+<div id="userModal" class="modal hidden">
+  <div class="modal-backdrop" id="modalBackdrop"></div>
+  <div class="modal-card">
+    <div class="modal-head">
+      <div>
+        <h2 id="detailEmail">جزئیات کاربر</h2>
+        <p id="detailMeta"></p>
+      </div>
+      <button id="closeModal" class="close-btn" type="button">×</button>
+    </div>
+
+    <div id="detailStatus" class="status detail-status"></div>
+
+    <div class="detail-stats">
+      <div class="detail-card"><span>تعداد اسناد</span><strong id="detailCount">۰</strong></div>
+      <div class="detail-card income"><span>مجموع درآمد</span><strong id="detailIncome">۰</strong><small>تومان</small></div>
+      <div class="detail-card expense"><span>مجموع هزینه</span><strong id="detailExpense">۰</strong><small>تومان</small></div>
+      <div class="detail-card balance"><span>موجودی خالص</span><strong id="detailBalance">۰</strong><small>تومان</small></div>
+    </div>
+
+    <div class="detail-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>عنوان</th>
+            <th>نوع</th>
+            <th>مبلغ</th>
+            <th>توضیحات</th>
+            <th>تاریخ</th>
+          </tr>
+        </thead>
+        <tbody id="detailTransactions"></tbody>
+      </table>
+    </div>
+    <div id="detailEmpty" class="empty hidden">این کاربر هنوز تراکنشی ثبت نکرده است.</div>
+  </div>
+</div>
+
 <script src="admin.js"></script>
 </body>
 </html>
