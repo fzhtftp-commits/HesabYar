@@ -5,12 +5,10 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.Image
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -42,12 +40,9 @@ class LoginActivity : ComponentActivity() {
                     Modifier.fillMaxSize().padding(24.dp),
                     verticalArrangement = Arrangement.Center
                 ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.hesabyar_logo),
-                        contentDescription = "لوگوی حساب‌یار",
-                        modifier = Modifier.fillMaxWidth().height(180.dp)
-                    )
+                    Text("حساب‌یار", style = MaterialTheme.typography.displaySmall, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
                     Spacer(Modifier.height(16.dp))
+)
                     Text(
                         if (registerMode) "ایجاد حساب جدید" else "ورود به حساب‌یار",
                         style = MaterialTheme.typography.headlineMedium
