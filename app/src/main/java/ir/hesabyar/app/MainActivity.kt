@@ -153,8 +153,8 @@ fun HesabYarApp() {
     val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences(PREFS, Context.MODE_PRIVATE) }
     val scope = rememberCoroutineScope()
-    val accessToken = prefs.getString("supabase_access_token", null)
-    val userId = prefs.getString("supabase_user_id", null)
+    val accessToken = prefs.getString("supabase_access_token", null) ?: return
+    val userId = prefs.getString("supabase_user_id", null) ?: return
     val lifecycleOwner = LocalLifecycleOwner.current
     var syncMessage by remember { mutableStateOf("") }
     var showSplash by remember { mutableStateOf(true) }
