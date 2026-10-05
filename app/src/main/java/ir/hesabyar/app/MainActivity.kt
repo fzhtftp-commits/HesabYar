@@ -452,7 +452,7 @@ fun SplashScreen() {
                 verticalArrangement = Arrangement.Center
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.hesabyar_logo),
+                    painter = painterResource(id = R.drawable.hesabyar_splash),
                     contentDescription = "لوگوی حساب‌یار",
                     modifier = Modifier.size(210.dp)
                 )
