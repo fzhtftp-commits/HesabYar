@@ -726,6 +726,36 @@ fun HesabYarApp(initialSplash: Boolean = true) {
                     }
 
                     item {
+                        OutlinedButton(
+                            onClick = {
+                                prefs.edit()
+                                    .remove("supabase_access_token")
+                                    .remove("supabase_refresh_token")
+                                    .remove("supabase_user_id")
+                                    .remove(KEY_LOGIN_AT)
+                                    .apply()
+
+                                context.startActivity(
+                                    Intent(
+                                        context,
+                                        LoginActivity::class.java
+                                    ).apply {
+                                        putExtra(
+                                            "session_expired",
+                                            false
+                                        )
+                                    }
+                                )
+
+                                (context as? Activity)?.finish()
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("خروج از حساب")
+                        }
+                    }
+
+                    item {
                         Text(
                             "تراکنش‌ها (" +
                                 visibleTransactions.size +
