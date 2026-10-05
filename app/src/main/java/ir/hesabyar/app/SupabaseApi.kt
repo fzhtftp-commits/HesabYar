@@ -17,7 +17,7 @@ object SupabaseApi {
     private const val BASE_URL = "https://cwuncmdfxvanflbunlxx.supabase.co"
     private const val API_KEY = "sb_publishable_mGd-RSSQeGsCMLrsFj5H5g_1xRESlGw"
 
-    private fun request(
+    private fun errorMessage(code: Int, response: String, fallback: String): String {\n        val detail = runCatching {\n            val json = JSONObject(response)\n            listOf(json.optString("message"), json.optString("msg"), json.optString("error_description"), json.optString("error"), json.optString("details"), json.optString("hint")).firstOrNull { it.isNotBlank() }\n        }.getOrNull()\n        return if (!detail.isNullOrBlank()) "Supabase HTTP $code: ${detail.take(240)}" else "Supabase HTTP $code: ${response.take(240).ifBlank { fallback }}"\n    }\n\n    private fun request(
         method: String,
         url: String,
         accessToken: String? = null,
@@ -63,7 +63,7 @@ object SupabaseApi {
         if (code !in 200..299) {
             val message = runCatching { JSONObject(response).optString("msg").ifBlank { JSONObject(response).optString("message") } }
                 .getOrDefault("")
-            throw IllegalStateException(message.ifBlank { "ورود ناموفق بود." })
+            throw IllegalStateException(errorMessage(code, response, "ورود ناموفق بود."))
         }
         val json = JSONObject(response)
         return SupabaseSession(
@@ -80,7 +80,7 @@ object SupabaseApi {
             "$BASE_URL/auth/v1/token?grant_type=refresh_token",
             body = body
         )
-        if (code !in 200..299) throw IllegalStateException("جلسه ورود منقضی شده است.")
+        if (code !in 200..299) throw IllegalStateException(errorMessage(code, response, "جلسه ورود منقضی شده است."))
         val json = JSONObject(response)
         return SupabaseSession(
             json.getString("access_token"),
@@ -92,7 +92,7 @@ object SupabaseApi {
     fun getTransactions(accessToken: String): List<RemoteTransaction> {
         val url = "$BASE_URL/rest/v1/transactions?select=id,title,amount,type,description,transaction_date&order=created_at.desc"
         val (code, response) = request("GET", url, accessToken)
-        if (code !in 200..299) throw IllegalStateException("دریافت اطلاعات حسابداری ناموفق بود.")
+        if (code !in 200..299) throw IllegalStateException(errorMessage(code, response, "دریافت اطلاعات حسابداری ناموفق بود."))
         val arr = JSONArray(response)
         return List(arr.length()) { i ->
             val o = arr.getJSONObject(i)
@@ -123,7 +123,7 @@ object SupabaseApi {
             body,
             "return=representation"
         )
-        if (code !in 200..299) throw IllegalStateException("ذخیره ابری تراکنش ناموفق بود.")
+        if (code !in 200..299) throw IllegalStateException(errorMessage(code, response, "ذخیره ابری تراکنش ناموفق بود."))
         return JSONArray(response).getJSONObject(0).getLong("id")
     }
 
@@ -142,7 +142,7 @@ object SupabaseApi {
             body,
             "return=minimal"
         )
-        if (code !in 200..299) throw IllegalStateException("ویرایش ابری تراکنش ناموفق بود.")
+        if (code !in 200..299) throw IllegalStateException(errorMessage(code, response, "ویرایش ابری تراکنش ناموفق بود."))
     }
 
     fun deleteTransaction(accessToken: String, transactionId: Long) {
@@ -151,7 +151,7 @@ object SupabaseApi {
             "$BASE_URL/rest/v1/transactions?id=eq.$transactionId",
             accessToken
         )
-        if (code !in 200..299) throw IllegalStateException("حذف ابری تراکنش ناموفق بود.")
+        if (code !in 200..299) throw IllegalStateException(errorMessage(code, response, "حذف ابری تراکنش ناموفق بود."))
     }
 
     fun deleteAllTransactions(accessToken: String) {
@@ -160,7 +160,7 @@ object SupabaseApi {
             "$BASE_URL/rest/v1/transactions?id=gt.0",
             accessToken
         )
-        if (code !in 200..299) throw IllegalStateException("پاک‌سازی ابری ناموفق بود.")
+        if (code !in 200..299) throw IllegalStateException(errorMessage(code, response, "پاک‌سازی ابری ناموفق بود."))
     }
 }
 
