@@ -4,7 +4,7 @@
     <application
         android:theme="@style/Theme.HesabYar"
         android:label="حساب‌یار"
-        android:icon="@drawable/hesabyar_icon"
+        android:icon="@drawable/hesabyar_logo"
         android:allowBackup="true"
         android:supportsRtl="true">
         <activity
