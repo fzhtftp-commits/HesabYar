@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>حساب‌یار | پنل مدیریت</title>
+<link rel="stylesheet" href="admin.css">
+</head>
+<body>
+<div id="loginScreen" class="login-screen">
+  <div class="login-card">
+    <div class="logo">حساب‌یار</div>
+    <h1>پنل مدیریت</h1>
+    <p>ورود مدیر سیستم</p>
+    <form id="loginForm">
+      <label>ایمیل مدیر<input id="email" type="email" required autocomplete="username"></label>
+      <label>رمز عبور<input id="password" type="password" required autocomplete="current-password"></label>
+      <button id="loginBtn" type="submit">ورود به پنل</button>
+    </form>
+    <div id="loginMessage" class="message"></div>
+  </div>
+</div>
+
+<div id="panel" class="hidden">
+<header>
+  <div>
+    <div class="brand">حساب‌یار</div>
+    <div class="subtitle">پنل مدیریت</div>
+  </div>
+  <div class="header-actions"><span id="adminEmail"></span><button id="logoutBtn">خروج</button></div>
+</header>
+<main>
+  <div id="status" class="status"></div>
+  <section class="stats">
+    <div class="card"><span>کل کاربران</span><strong id="usersCount">۰</strong></div>
+    <div class="card"><span>کل اسناد</span><strong id="txCount">۰</strong></div>
+    <div class="card income"><span>مجموع درآمد</span><strong id="income">۰</strong><small>تومان</small></div>
+    <div class="card expense"><span>مجموع هزینه</span><strong id="expense">۰</strong><small>تومان</small></div>
+  </section>
+
+  <section class="card">
+    <div class="section-head">
+      <div><h2>کاربران</h2><p>مدیریت و مشاهده وضعیت کاربران حساب‌یار</p></div>
+      <button id="refreshBtn" class="secondary">بروزرسانی</button>
+    </div>
+    <input id="search" class="search" placeholder="جستجو با ایمیل...">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>ایمیل</th><th>تاریخ ثبت‌نام</th><th>آخرین ورود</th><th>تعداد اسناد</th><th>درآمد</th><th>هزینه</th></tr></thead>
+        <tbody id="usersBody"></tbody>
+      </table>
+    </div>
+    <div id="empty" class="empty hidden">کاربری پیدا نشد.</div>
+  </section>
+</main>
+</div>
+<script src="admin.js"></script>
+</body>
+</html>
