@@ -33,6 +33,9 @@ import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.io.OutputStream
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -101,6 +104,112 @@ private fun hasValidLogin(context: Context): Boolean {
     }
 
     return true
+}
+
+
+private fun xmlEscape(value: String): String =
+    value
+        .replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace("\"", "&quot;")
+        .replace("'", "&apos;")
+
+private fun excelColumnName(index: Int): String {
+    var n = index + 1
+    val result = StringBuilder()
+    while (n > 0) {
+        val rem = (n - 1) % 26
+        result.append(('A'.code + rem).toChar())
+        n = (n - 1) / 26
+    }
+    return result.reverse().toString()
+}
+
+private fun writeZipEntry(zip: ZipOutputStream, name: String, content: String) {
+    zip.putNextEntry(ZipEntry(name))
+    zip.write(content.toByteArray(Charsets.UTF_8))
+    zip.closeEntry()
+}
+
+private fun writeXlsx(
+    output: OutputStream,
+    transactions: List<Transaction>
+) {
+    val headers = listOf("عنوان", "مبلغ", "نوع", "دسته‌بندی", "تاریخ")
+    val rows = mutableListOf<List<String>>()
+    rows.add(headers)
+    transactions.forEach { t ->
+        rows.add(
+            listOf(
+                t.title,
+                t.amount.toString(),
+                if (t.income) "درآمد" else "هزینه",
+                t.category,
+                t.date
+            )
+        )
+    }
+
+    val sheetRows = buildString {
+        rows.forEachIndexed { rowIndex, row ->
+            val excelRow = rowIndex + 1
+            append("<row r=\"\$excelRow\">")
+            row.forEachIndexed { colIndex, value ->
+                val ref = excelColumnName(colIndex) + excelRow
+                if (colIndex == 1 && rowIndex > 0) {
+                    append("<c r=\"\$ref\"><v>\${xmlEscape(value)}</v></c>")
+                } else {
+                    append("<c r=\"\$ref\" t=\"inlineStr\"><is><t>\${xmlEscape(value)}</t></is></c>")
+                }
+            }
+            append("</row>")
+        }
+    }
+
+    val sheetXml = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+<sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>
+<cols>
+<col min="1" max="1" width="28" customWidth="1"/>
+<col min="2" max="2" width="16" customWidth="1"/>
+<col min="3" max="3" width="14" customWidth="1"/>
+<col min="4" max="4" width="22" customWidth="1"/>
+<col min="5" max="5" width="22" customWidth="1"/>
+</cols>
+<sheetData>$sheetRows</sheetData>
+</worksheet>"""
+
+    val workbookXml = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+<sheets><sheet name="تراکنش‌ها" sheetId="1" r:id="rId1"/></sheets>
+</workbook>"""
+
+    val workbookRels = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>
+</Relationships>"""
+
+    val contentTypes = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+<Default Extension="xml" ContentType="application/xml"/>
+<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>
+<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>
+</Types>"""
+
+    val rootRels = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>
+</Relationships>"""
+
+    ZipOutputStream(output).use { zip ->
+        writeZipEntry(zip, "[Content_Types].xml", contentTypes)
+        writeZipEntry(zip, "_rels/.rels", rootRels)
+        writeZipEntry(zip, "xl/workbook.xml", workbookXml)
+        writeZipEntry(zip, "xl/_rels/workbook.xml.rels", workbookRels)
+        writeZipEntry(zip, "xl/worksheets/sheet1.xml", sheetXml)
+    }
 }
 
 private fun shareText(
@@ -311,38 +420,18 @@ fun HesabYarApp(initialSplash: Boolean = true) {
     var filter by remember { mutableStateOf("all") }
     var reportPeriod by remember { mutableStateOf("month") }
 
-    val csvLauncher =
+    val excelLauncher =
         rememberLauncherForActivityResult(
-            ActivityResultContracts.CreateDocument("text/csv")
+            ActivityResultContracts.CreateDocument(
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
         ) { uri ->
             if (uri != null) {
-                val csv = buildString {
-                    append("\uFEFF")
-                    append(
-                        "عنوان,مبلغ,نوع,دسته‌بندی,تاریخ\n"
-                    )
-
-                    transactions.forEach { t ->
-                        val title =
-                            t.title.replace("\"", "\"\"")
-                        val category =
-                            t.category.replace("\"", "\"\"")
-                        val type =
-                            if (t.income) "درآمد" else "هزینه"
-
-                        append(
-                            "\"$title\",${t.amount},$type,\"$category\",\"${t.date}\"\n"
-                        )
-                    }
-                }
-
                 try {
                     context.contentResolver
                         .openOutputStream(uri)
                         ?.use { output ->
-                            output.write(
-                                csv.toByteArray(Charsets.UTF_8)
-                            )
+                            writeXlsx(output, transactions)
                         }
                 } catch (_: Exception) {
                 }
@@ -689,13 +778,13 @@ fun HesabYarApp(initialSplash: Boolean = true) {
                         ) {
                             OutlinedButton(
                                 {
-                                    csvLauncher.launch(
+                                    excelLauncher.launch(
                                         "HesabYar_" +
                                             SimpleDateFormat(
                                                 "yyyyMMdd_HHmm",
                                                 Locale.US
                                             ).format(Date()) +
-                                            ".csv"
+                                            ".xlsx"
                                     )
                                 },
                                 Modifier.weight(1f)
