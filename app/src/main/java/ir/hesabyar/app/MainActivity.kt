@@ -460,22 +460,30 @@ fun HesabYarApp(initialSplash: Boolean = true) {
                     }
 
                     item {
-                        Card(Modifier.fillMaxWidth()) {
+                        Card(
+                            Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer
+                            )
+                        ) {
                             Column(
-                                Modifier.padding(18.dp)
+                                Modifier.padding(18.dp),
+                                verticalArrangement = Arrangement.spacedBy(6.dp)
                             ) {
                                 Text(
-                                    "موجودی / سود",
+                                    "موجودی خالص",
                                     style =
                                         MaterialTheme.typography.labelLarge
                                 )
 
                                 Text(
                                     "${formatter.format(balance)} تومان",
-                                    style =
-                                        MaterialTheme.typography.headlineMedium,
-                                    fontWeight =
-                                        FontWeight.Bold
+                                    style = MaterialTheme.typography.headlineMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    if (balance >= 0) "وضعیت مالی مثبت" else "نیاز به بررسی هزینه‌ها",
+                                    style = MaterialTheme.typography.bodySmall
                                 )
                             }
                         }
