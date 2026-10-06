@@ -12,6 +12,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.*
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.runtime.*
 import androidx.compose.runtime.DisposableEffect
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -57,6 +60,11 @@ private const val KEY_WELCOME_SHOWN = "welcome_shown"
 private const val KEY_LOGIN_AT = "supabase_login_at"
 private const val KEY_TRANSACTIONS_PREFIX = "transactions_"
 private const val LOGIN_TIMEOUT_MS = 24L * 60L * 60L * 1000L
+
+private val STANDARD_CATEGORIES = listOf(
+    "فروش", "خرید", "حقوق", "اجاره", "قبوض",
+    "حمل‌ونقل", "تبلیغات", "مواد اولیه", "فروشگاه", "سایر", "عمومی"
+)
 
 private fun transactionKey(userId: String): String =
     KEY_TRANSACTIONS_PREFIX + userId
@@ -1280,14 +1288,43 @@ fun AddTransactionDialog(
                     singleLine = true
                 )
 
-                OutlinedTextField(
-                    category,
-                    { category = it },
-                    label = {
-                        Text("دسته‌بندی")
-                    },
-                    singleLine = true
-                )
+                var categoryExpanded by remember { mutableStateOf(false) }
+
+                ExposedDropdownMenuBox(
+                    expanded = categoryExpanded,
+                    onExpandedChange = {
+                        categoryExpanded = !categoryExpanded
+                    }
+                ) {
+                    OutlinedTextField(
+                        value = category,
+                        onValueChange = { category = it },
+                        label = { Text("دسته‌بندی") },
+                        placeholder = { Text("انتخاب دسته‌بندی") },
+                        singleLine = true,
+                        readOnly = true,
+                        modifier = Modifier
+                            .menuAnchor()
+                            .fillMaxWidth()
+                    )
+
+                    ExposedDropdownMenu(
+                        expanded = categoryExpanded,
+                        onDismissRequest = {
+                            categoryExpanded = false
+                        }
+                    ) {
+                        STANDARD_CATEGORIES.forEach { item ->
+                            DropdownMenuItem(
+                                text = { Text(item) },
+                                onClick = {
+                                    category = item
+                                    categoryExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
             }
         },
         confirmButton = {
