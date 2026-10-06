@@ -19,6 +19,9 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.foundation.Image
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -60,12 +63,20 @@ class LoginActivity : ComponentActivity() {
                     ) {
                         Spacer(Modifier.height(18.dp))
                         Box(
-                            Modifier.size(82.dp).background(
-                                Color.White.copy(alpha = 0.14f), RoundedCornerShape(24.dp)
-                            ),
+                            Modifier
+                                .size(100.dp)
+                                .background(
+                                    Color.White.copy(alpha = 0.14f),
+                                    RoundedCornerShape(28.dp)
+                                ),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("ح", color = Color.White, style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.ExtraBold)
+                            Image(
+                                painter = painterResource(id = R.drawable.hesabyar_logo),
+                                contentDescription = "لوگوی حساب‌یار",
+                                contentScale = ContentScale.Fit,
+                                modifier = Modifier.size(82.dp)
+                            )
                         }
                         Spacer(Modifier.height(12.dp))
                         Text("حساب‌یار", color = Color.White, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
