@@ -42,101 +42,59 @@ class LoginActivity : ComponentActivity() {
         var confirmPasswordVisible by remember { mutableStateOf(false) }
         val scope = rememberCoroutineScope()
         val prefs = getSharedPreferences("hesabyar_data", Context.MODE_PRIVATE)
+        val appVersion = packageManager.getPackageInfo(packageName, 0).versionName ?: "نامشخص"
 
         CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
             val scheme = MaterialTheme.colorScheme
-
             Surface(Modifier.fillMaxSize()) {
                 Box(
-                    Modifier
-                        .fillMaxSize()
-                        .background(
-                            Brush.verticalGradient(
-                                listOf(
-                                    Color(0xFF071A33),
-                                    Color(0xFF0D2D4F),
-                                    Color(0xFFF6F8FC)
-                                )
-                            )
+                    Modifier.fillMaxSize().background(
+                        Brush.verticalGradient(
+                            listOf(Color(0xFF071A33), Color(0xFF0D2D4F), Color(0xFFF6F8FC))
                         )
+                    )
                 ) {
                     Column(
-                        Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 22.dp, vertical = 28.dp),
+                        Modifier.fillMaxSize().padding(horizontal = 22.dp, vertical = 28.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Spacer(Modifier.height(18.dp))
-
                         Box(
-                            Modifier
-                                .size(82.dp)
-                                .background(
-                                    Color.White.copy(alpha = 0.14f),
-                                    RoundedCornerShape(24.dp)
-                                ),
+                            Modifier.size(82.dp).background(
+                                Color.White.copy(alpha = 0.14f), RoundedCornerShape(24.dp)
+                            ),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(
-                                "ح",
-                                color = Color.White,
-                                style = MaterialTheme.typography.displaySmall,
-                                fontWeight = FontWeight.ExtraBold
-                            )
+                            Text("ح", color = Color.White, style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.ExtraBold)
                         }
-
                         Spacer(Modifier.height(12.dp))
-
-                        Text(
-                            "حساب‌یار",
-                            color = Color.White,
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-
-                        Text(
-                            "مدیریت هوشمند مالی کسب‌وکار شما",
-                            color = Color.White.copy(alpha = 0.82f),
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-
+                        Text("حساب‌یار", color = Color.White, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                        Text("مدیریت هوشمند مالی کسب‌وکار شما", color = Color.White.copy(alpha = 0.82f), style = MaterialTheme.typography.bodyMedium)
                         Spacer(Modifier.height(28.dp))
 
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(28.dp),
                             elevation = CardDefaults.cardElevation(defaultElevation = 10.dp),
-                            colors = CardDefaults.cardColors(
-                                containerColor = scheme.surface.copy(alpha = 0.98f)
-                            )
+                            colors = CardDefaults.cardColors(containerColor = scheme.surface.copy(alpha = 0.98f))
                         ) {
-                            Column(
-                                Modifier.padding(22.dp),
-                                verticalArrangement = Arrangement.spacedBy(12.dp)
-                            ) {
+                            Column(Modifier.padding(22.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                                 Text(
                                     if (registerMode) "ساخت حساب جدید" else "خوش آمدید 👋",
                                     style = MaterialTheme.typography.headlineSmall,
                                     fontWeight = FontWeight.Bold
                                 )
-
                                 Text(
-                                    if (registerMode)
-                                        "برای شروع، اطلاعات حساب خود را وارد کنید."
-                                    else
-                                        "برای ادامه وارد حساب حساب‌یار شوید.",
+                                    if (registerMode) "برای شروع، اطلاعات حساب خود را وارد کنید."
+                                    else "برای ادامه وارد حساب حساب‌یار شوید.",
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = scheme.onSurfaceVariant
                                 )
-
                                 Spacer(Modifier.height(4.dp))
 
                                 OutlinedTextField(
                                     value = email,
-                                    onValueChange = {
-                                        email = it
-                                        error = ""
-                                    },
+                                    onValueChange = { email = it; error = "" },
                                     label = { Text("ایمیل") },
                                     placeholder = { Text("example@email.com") },
                                     singleLine = true,
@@ -146,10 +104,7 @@ class LoginActivity : ComponentActivity() {
 
                                 OutlinedTextField(
                                     value = password,
-                                    onValueChange = {
-                                        password = it
-                                        error = ""
-                                    },
+                                    onValueChange = { password = it; error = "" },
                                     label = { Text("رمز عبور") },
                                     singleLine = true,
                                     visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
@@ -165,10 +120,7 @@ class LoginActivity : ComponentActivity() {
                                 if (registerMode) {
                                     OutlinedTextField(
                                         value = confirmPassword,
-                                        onValueChange = {
-                                            confirmPassword = it
-                                            error = ""
-                                        },
+                                        onValueChange = { confirmPassword = it; error = "" },
                                         label = { Text("تکرار رمز عبور") },
                                         singleLine = true,
                                         visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
@@ -184,47 +136,30 @@ class LoginActivity : ComponentActivity() {
 
                                 if (error.isNotBlank()) {
                                     Card(
-                                        colors = CardDefaults.cardColors(
-                                            containerColor = scheme.errorContainer
-                                        ),
+                                        colors = CardDefaults.cardColors(containerColor = scheme.errorContainer),
                                         shape = RoundedCornerShape(14.dp),
                                         modifier = Modifier.fillMaxWidth()
                                     ) {
-                                        Text(
-                                            error,
-                                            modifier = Modifier.padding(12.dp),
-                                            color = scheme.onErrorContainer,
-                                            style = MaterialTheme.typography.bodySmall
-                                        )
+                                        Text(error, modifier = Modifier.padding(12.dp), color = scheme.onErrorContainer, style = MaterialTheme.typography.bodySmall)
                                     }
                                 }
 
                                 if (success.isNotBlank()) {
                                     Card(
-                                        colors = CardDefaults.cardColors(
-                                            containerColor = scheme.primaryContainer
-                                        ),
+                                        colors = CardDefaults.cardColors(containerColor = scheme.primaryContainer),
                                         shape = RoundedCornerShape(14.dp),
                                         modifier = Modifier.fillMaxWidth()
                                     ) {
-                                        Text(
-                                            success,
-                                            modifier = Modifier.padding(12.dp),
-                                            color = scheme.onPrimaryContainer,
-                                            style = MaterialTheme.typography.bodySmall
-                                        )
+                                        Text(success, modifier = Modifier.padding(12.dp), color = scheme.onPrimaryContainer, style = MaterialTheme.typography.bodySmall)
                                     }
                                 }
 
                                 Button(
-                                    enabled = !loading &&
-                                        email.isNotBlank() &&
-                                        password.isNotBlank() &&
+                                    enabled = !loading && email.isNotBlank() && password.isNotBlank() &&
                                         (!registerMode || confirmPassword.isNotBlank()),
                                     onClick = {
                                         error = ""
                                         success = ""
-
                                         if (registerMode) {
                                             if (password.length < 6) {
                                                 error = "رمز عبور باید حداقل ۶ کاراکتر باشد."
@@ -234,13 +169,10 @@ class LoginActivity : ComponentActivity() {
                                                 error = "رمز عبور و تکرار آن یکسان نیست."
                                                 return@Button
                                             }
-
                                             loading = true
                                             scope.launch {
                                                 try {
-                                                    withContext(Dispatchers.IO) {
-                                                        SupabaseApi.signUp(email.trim(), password)
-                                                    }
+                                                    withContext(Dispatchers.IO) { SupabaseApi.signUp(email.trim(), password) }
                                                     registerMode = false
                                                     confirmPassword = ""
                                                     password = ""
@@ -255,21 +187,14 @@ class LoginActivity : ComponentActivity() {
                                             loading = true
                                             scope.launch {
                                                 try {
-                                                    val session = withContext(Dispatchers.IO) {
-                                                        SupabaseApi.signIn(email.trim(), password)
-                                                    }
+                                                    val session = withContext(Dispatchers.IO) { SupabaseApi.signIn(email.trim(), password) }
                                                     prefs.edit()
                                                         .putString("supabase_access_token", session.accessToken)
                                                         .putString("supabase_refresh_token", session.refreshToken)
                                                         .putString("supabase_user_id", session.userId)
                                                         .putLong("supabase_login_at", System.currentTimeMillis())
                                                         .apply()
-                                                    startActivity(
-                                                        android.content.Intent(
-                                                            this@LoginActivity,
-                                                            MainActivity::class.java
-                                                        )
-                                                    )
+                                                    startActivity(android.content.Intent(this@LoginActivity, MainActivity::class.java))
                                                     finish()
                                                 } catch (e: Exception) {
                                                     error = e.message ?: "خطا در ورود"
@@ -280,9 +205,7 @@ class LoginActivity : ComponentActivity() {
                                         }
                                     },
                                     shape = RoundedCornerShape(16.dp),
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(54.dp)
+                                    modifier = Modifier.fillMaxWidth().height(54.dp)
                                 ) {
                                     Text(
                                         when {
@@ -305,23 +228,15 @@ class LoginActivity : ComponentActivity() {
                                     },
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
-                                    Text(
-                                        if (registerMode)
-                                            "حساب دارید؟ ورود به حساب"
-                                        else
-                                            "حساب جدید ندارید؟ ثبت‌نام کنید"
-                                    )
+                                    Text(if (registerMode) "حساب دارید؟ ورود به حساب" else "حساب جدید ندارید؟ ثبت‌نام کنید")
                                 }
                             }
                         }
 
                         Spacer(Modifier.height(14.dp))
-
-                        Text(
-                            "امن، ساده و همیشه همراه کسب‌وکار شما",
-                            color = Color.White.copy(alpha = 0.78f),
-                            style = MaterialTheme.typography.labelMedium
-                        )
+                        Text("امن، ساده و همیشه همراه کسب‌وکار شما", color = Color.White.copy(alpha = 0.78f), style = MaterialTheme.typography.labelMedium)
+                        Spacer(Modifier.height(6.dp))
+                        Text("نسخه $appVersion", color = Color.White.copy(alpha = 0.70f), style = MaterialTheme.typography.labelSmall)
                     }
                 }
             }
