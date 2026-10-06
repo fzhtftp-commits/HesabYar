@@ -25,3 +25,16 @@
 
 .details-btn{background:#165a8d;color:#fff;padding:8px 12px;border-radius:9px;font-size:12px;white-space:nowrap}
 .details-btn:hover{opacity:.88}
+
+.detail-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.action-btn{padding:9px 13px;border-radius:10px;background:#165a8d;color:#fff}
+.secondary-action{background:#6b4aa0}
+.export-action{background:#087443}
+.delete-tx{background:#a02c2c;padding:6px 9px;border-radius:8px;font-size:11px}
+.detail-chart{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}
+.chart-box{background:#f8f9fc;border:1px solid #eef0f5;border-radius:16px;padding:14px}
+.chart-box h3{margin:0 0 10px;font-size:13px}
+.bar-track{height:12px;background:#e8ebf1;border-radius:99px;overflow:hidden}
+.bar-fill{height:100%;border-radius:99px}
+.chart-value{font-size:12px;color:#666;margin-top:7px}
+@media(max-width:600px){.detail-chart{grid-template-columns:1fr}.detail-actions .action-btn{flex:1}}
