@@ -174,7 +174,9 @@ function exportExcel(user){
     const cells=[...tr.querySelectorAll("td")].slice(0,5).map(td=>td.innerText.trim());
     if(cells.length)rowsToExport.push(cells);
   });
-  const csv="\ufeff"+rowsToExport.map(row=>row.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(",")).join("\r\n");
+  // Excel on Persian/Windows locales commonly expects semicolon as the CSV delimiter.
+  // Keep UTF-8 BOM so Persian text is displayed correctly.
+  const csv="\ufeff"+rowsToExport.map(row=>row.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(";")).join("\r\n");
   const blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});
   const a=document.createElement("a");
   a.href=URL.createObjectURL(blob);
