@@ -72,17 +72,21 @@ Deno.serve(async (req) => {
       if (action === "delete_transaction") {
         const transactionId = String(body?.transaction_id || "");
         if (!transactionId) return json({ error: "شناسه تراکنش لازم است." }, 400, corsHeaders);
-        const { error } = await adminClient.from("transactions").delete().eq("id", transactionId).eq("user_id", userId);
+        const { data: deletedRows, error } = await adminClient.from("transactions").delete().eq("id", transactionId).eq("user_id", userId).select("id");
         if (error) throw error;
-        return json({ ok: true, message: "تراکنش حذف شد." }, 200, corsHeaders);
+        if (!deletedRows || deletedRows.length === 0) {
+          return json({ error: "تراکنش پیدا نشد یا متعلق به این کاربر نیست." }, 404, corsHeaders);
+        }
+        return json({ ok: true, deleted_id: deletedRows[0].id, message: "تراکنش حذف شد." }, 200, corsHeaders);
       }
 
       if (action === "set_password") {
         const password = String(body?.password || "");
         if (password.length < 6) return json({ error: "رمز عبور باید حداقل ۶ کاراکتر باشد." }, 400, corsHeaders);
-        const { error } = await adminClient.auth.admin.updateUserById(userId, { password });
+        const { data: updatedUser, error } = await adminClient.auth.admin.updateUserById(userId, { password });
         if (error) throw error;
-        return json({ ok: true, message: "رمز عبور کاربر تغییر کرد." }, 200, corsHeaders);
+        if (!updatedUser?.user?.id) return json({ error: "تغییر رمز تأیید نشد." }, 500, corsHeaders);
+        return json({ ok: true, user_id: updatedUser.user.id, message: "رمز عبور کاربر تغییر کرد." }, 200, corsHeaders);
       }
 
       if (action === "set_status") {
