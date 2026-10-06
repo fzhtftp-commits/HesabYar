@@ -68,6 +68,54 @@ Deno.serve(async (req) => {
     const url = new URL(req.url);
     const requestedUserId = url.searchParams.get("user_id");
 
+    // Detail view: fetch only the selected user and that user's transactions.
+    // This avoids rebuilding the entire dashboard for every detail request.
+    if (req.method === "GET" && requestedUserId) {
+      const { data: selectedUserData, error: selectedUserError } =
+        await adminClient.auth.admin.getUserById(requestedUserId);
+
+      if (selectedUserError) throw selectedUserError;
+      const selectedAuthUser = selectedUserData?.user;
+
+      if (!selectedAuthUser) {
+        return json({ error: "کاربر پیدا نشد." }, 404, corsHeaders);
+      }
+
+      const { data: userTransactions, error: userTxError } = await adminClient
+        .from("transactions")
+        .select("id,title,amount,type,description,transaction_date,created_at")
+        .eq("user_id", requestedUserId)
+        .order("created_at", { ascending: false });
+
+      if (userTxError) throw userTxError;
+
+      let income = 0;
+      let expense = 0;
+      for (const tx of userTransactions || []) {
+        const amount = Number(tx.amount || 0);
+        if (tx.type === "income") income += amount;
+        else expense += amount;
+      }
+
+      const bannedUntil = selectedAuthUser.banned_until || null;
+      const disabled =
+        !!bannedUntil && new Date(bannedUntil).getTime() > Date.now();
+
+      return json({
+        user: {
+          id: selectedAuthUser.id,
+          email: selectedAuthUser.email || "",
+          created_at: selectedAuthUser.created_at,
+          last_sign_in_at: selectedAuthUser.last_sign_in_at,
+          transaction_count: userTransactions?.length || 0,
+          income,
+          expense,
+          disabled,
+        },
+        transactions: userTransactions || [],
+      }, 200, corsHeaders);
+    }
+
     if (req.method === "POST") {
       const body = await req.json().catch(() => null);
       if (!body || typeof body !== "object") {
@@ -136,18 +184,6 @@ Deno.serve(async (req) => {
         transaction_count: stats.count, income: stats.income, expense: stats.expense, disabled
       };
     });
-
-    if (requestedUserId) {
-      const selected = users.find(u => u.id === requestedUserId);
-      if (!selected) return json({ error: "کاربر پیدا نشد." }, 404, corsHeaders);
-      const { data: userTransactions, error: userTxError } = await adminClient
-        .from("transactions")
-        .select("id,title,amount,type,description,transaction_date,created_at")
-        .eq("user_id", requestedUserId)
-        .order("created_at", { ascending: false });
-      if (userTxError) throw userTxError;
-      return json({ user: selected, transactions: userTransactions || [] });
-    }
 
     return json({ summary: { users: users.length, transactions: txs?.length || 0, income: totalIncome, expense: totalExpense }, users }, 200, corsHeaders);
   } catch (error) {
