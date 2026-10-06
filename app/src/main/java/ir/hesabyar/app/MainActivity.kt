@@ -766,6 +766,15 @@ fun HesabYarApp(initialSplash: Boolean = true) {
 
                     item {
                         OutlinedButton(
+                            onClick = { UpdateManager.checkAndOfferUpdate(context) },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("🔄 بررسی بروزرسانی حساب‌یار")
+                        }
+                    }
+
+                    item {
+                        OutlinedButton(
                             onClick = {
                                 prefs.edit()
                                     .remove("supabase_access_token")
@@ -1244,7 +1253,6 @@ fun SummaryCard(
     }
 }
 
-}
 
 @Composable
 fun AddTransactionDialog(
