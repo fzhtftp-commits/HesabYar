@@ -70,7 +70,7 @@
 <dialog id="dialog"><form method="dialog" id="form"><h2 id="dialogTitle">ثبت درآمد</h2>
 <label>عنوان<input id="title" required maxlength="60"></label>
 <label>مبلغ به تومان<input id="amount" inputmode="numeric" required></label>
-<label>دسته‌بندی<input id="category" maxlength="40" placeholder="مثلاً فروش، خرید"></label>
+<label>دسته‌بندی<input id="category" list="categoryOptions" maxlength="40" placeholder="مثلاً فروش، خرید"><datalist id="categoryOptions"><option value="فروش"><option value="خرید"><option value="حقوق"><option value="اجاره"><option value="قبوض"><option value="حمل‌ونقل"><option value="تبلیغات"><option value="مواد اولیه"><option value="فروشگاه"><option value="سایر"><option value="عمومی"></datalist></label>
 <div class="dialog-actions"><button type="button" id="cancelBtn" class="outline">انصراف</button><button id="saveBtn" type="submit">ذخیره</button></div>
 </form></dialog>
 <script src="app.js"></script>
