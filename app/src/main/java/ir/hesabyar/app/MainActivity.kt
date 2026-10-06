@@ -154,13 +154,13 @@ private fun writeXlsx(
     val sheetRows = buildString {
         rows.forEachIndexed { rowIndex, row ->
             val excelRow = rowIndex + 1
-            append("<row r=\"\$excelRow\">")
+            append("<row r=\"$excelRow\">")
             row.forEachIndexed { colIndex, value ->
                 val ref = excelColumnName(colIndex) + excelRow
                 if (colIndex == 1 && rowIndex > 0) {
-                    append("<c r=\"\$ref\"><v>\${xmlEscape(value)}</v></c>")
+                    append("<c r=\"$ref\"><v>${xmlEscape(value)}</v></c>")
                 } else {
-                    append("<c r=\"\$ref\" t=\"inlineStr\"><is><t>\${xmlEscape(value)}</t></is></c>")
+                    append("<c r=\"$ref\" t=\"inlineStr\"><is><t>${xmlEscape(value)}</t></is></c>")
                 }
             }
             append("</row>")
