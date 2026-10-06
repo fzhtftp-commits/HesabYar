@@ -309,6 +309,7 @@ fun HesabYarApp(initialSplash: Boolean = true) {
     var isIncome by remember { mutableStateOf(true) }
     var search by remember { mutableStateOf("") }
     var filter by remember { mutableStateOf("all") }
+    var reportPeriod by remember { mutableStateOf("month") }
 
     val csvLauncher =
         rememberLauncherForActivityResult(
@@ -361,32 +362,30 @@ fun HesabYarApp(initialSplash: Boolean = true) {
     val balance = income - expense
     val formatter = DecimalFormat("#,###")
 
-    val nowMonth =
-        SimpleDateFormat(
-            "yyyy-MM",
-            Locale.US
-        ).format(Date())
+    val todayKey = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+    val monthKey = SimpleDateFormat("yyyy-MM", Locale.US).format(Date())
+    val weekStart = java.util.Calendar.getInstance().apply {
+        set(java.util.Calendar.DAY_OF_WEEK, java.util.Calendar.SATURDAY)
+        set(java.util.Calendar.HOUR_OF_DAY, 0)
+        set(java.util.Calendar.MINUTE, 0)
+        set(java.util.Calendar.SECOND, 0)
+        set(java.util.Calendar.MILLISECOND, 0)
+    }
+    val weekStartKey = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(weekStart.time)
 
-    val monthItems =
-        transactions.filter {
-            it.date.startsWith(nowMonth)
+    val reportItems = transactions.filter { t ->
+        when (reportPeriod) {
+            "today" -> t.date.startsWith(todayKey)
+            "week" -> t.date.take(10) >= weekStartKey && t.date.take(10) <= todayKey
+            "month" -> t.date.startsWith(monthKey)
+            else -> true
         }
+    }
 
-    val monthIncome =
-        monthItems
-            .filter { it.income }
-            .sumOf { it.amount }
-
-    val monthExpense =
-        monthItems
-            .filter { !it.income }
-            .sumOf { it.amount }
-
-    val monthProfit =
-        monthIncome - monthExpense
-
-    val maxMonth =
-        maxOf(monthIncome, monthExpense, 1L)
+    val reportIncome = reportItems.filter { it.income }.sumOf { it.amount }
+    val reportExpense = reportItems.filter { !it.income }.sumOf { it.amount }
+    val reportProfit = reportIncome - reportExpense
+    val maxReport = maxOf(reportIncome, reportExpense, 1L)
 
     if (showWelcome) {
         WelcomeScreen {
@@ -560,72 +559,73 @@ fun HesabYarApp(initialSplash: Boolean = true) {
                     }
 
                     item {
-                        Card(Modifier.fillMaxWidth()) {
+                        Card(
+                            Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(22.dp)
+                        ) {
                             Column(
                                 Modifier.padding(16.dp),
-                                verticalArrangement =
-                                    Arrangement.spacedBy(7.dp)
+                                verticalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
                                 Text(
-                                    "گزارش ماه جاری",
-                                    fontWeight =
-                                        FontWeight.Bold
+                                    "گزارش مالی",
+                                    fontWeight = FontWeight.Bold,
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+
+                                Row(
+                                    Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    FilterButton("امروز", reportPeriod == "today", Modifier.weight(1f)) {
+                                        reportPeriod = "today"
+                                    }
+                                    FilterButton("هفته", reportPeriod == "week", Modifier.weight(1f)) {
+                                        reportPeriod = "week"
+                                    }
+                                    FilterButton("ماه", reportPeriod == "month", Modifier.weight(1f)) {
+                                        reportPeriod = "month"
+                                    }
+                                    FilterButton("همه", reportPeriod == "all", Modifier.weight(1f)) {
+                                        reportPeriod = "all"
+                                    }
+                                }
+
+                                Text(
+                                    "درآمد: " + formatter.format(reportIncome) + " تومان",
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                                Text(
+                                    "هزینه: " + formatter.format(reportExpense) + " تومان",
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                                Text(
+                                    "سود خالص: " + formatter.format(reportProfit) + " تومان",
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (reportProfit >= 0)
+                                        Color(0xFF16834B)
+                                    else
+                                        MaterialTheme.colorScheme.error
                                 )
 
                                 Text(
-                                    "درآمد ماه: " +
-                                        formatter.format(
-                                            monthIncome
-                                        ) +
-                                        " تومان"
+                                    "مقایسه درآمد و هزینه",
+                                    fontWeight = FontWeight.Bold
                                 )
 
-                                Text(
-                                    "هزینه ماه: " +
-                                        formatter.format(
-                                            monthExpense
-                                        ) +
-                                        " تومان"
+                                FinancialBar(
+                                    label = "درآمد",
+                                    value = reportIncome,
+                                    maxValue = maxReport,
+                                    positive = true,
+                                    formatter = formatter
                                 )
-
-                                Text(
-                                    "سود ماه: " +
-                                        formatter.format(
-                                            monthProfit
-                                        ) +
-                                        " تومان"
-                                )
-
-                                Text("نمودار درآمد")
-
-                                LinearProgressIndicator(
-                                    progress = {
-                                        (
-                                            monthIncome.toFloat() /
-                                                maxMonth
-                                        ).coerceIn(
-                                            0f,
-                                            1f
-                                        )
-                                    },
-                                    modifier =
-                                        Modifier.fillMaxWidth()
-                                )
-
-                                Text("نمودار هزینه")
-
-                                LinearProgressIndicator(
-                                    progress = {
-                                        (
-                                            monthExpense.toFloat() /
-                                                maxMonth
-                                        ).coerceIn(
-                                            0f,
-                                            1f
-                                        )
-                                    },
-                                    modifier =
-                                        Modifier.fillMaxWidth()
+                                FinancialBar(
+                                    label = "هزینه",
+                                    value = reportExpense,
+                                    maxValue = maxReport,
+                                    positive = false,
+                                    formatter = formatter
                                 )
                             }
                         }
@@ -1204,6 +1204,44 @@ fun WelcomeScreen(
                         MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
+        }
+    }
+}
+
+@Composable
+fun FinancialBar(
+    label: String,
+    value: Long,
+    maxValue: Long,
+    positive: Boolean,
+    formatter: DecimalFormat
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(label, fontWeight = FontWeight.SemiBold)
+            Text(formatter.format(value), fontWeight = FontWeight.Bold)
+        }
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height(12.dp)
+                .background(
+                    MaterialTheme.colorScheme.surfaceVariant,
+                    RoundedCornerShape(20.dp)
+                )
+        ) {
+            Box(
+                Modifier
+                    .fillMaxWidth((value.toFloat() / maxValue).coerceIn(0f, 1f))
+                    .fillMaxHeight()
+                    .background(
+                        if (positive) Color(0xFF2E9B65) else Color(0xFFD95C5C),
+                        RoundedCornerShape(20.dp)
+                    )
+            )
         }
     }
 }
