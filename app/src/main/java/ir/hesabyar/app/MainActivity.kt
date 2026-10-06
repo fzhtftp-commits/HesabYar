@@ -433,13 +433,20 @@ fun HesabYarApp(initialSplash: Boolean = true) {
                         Arrangement.spacedBy(12.dp)
                 ) {
                     item {
-                        Text(
-                            "داشبورد حساب‌یار",
-                            style =
-                                MaterialTheme.typography.headlineSmall,
-                            fontWeight =
-                                FontWeight.Bold
-                        )
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                "داشبورد حساب‌یار",
+                                style = MaterialTheme.typography.headlineSmall,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                "نمای کلی وضعیت مالی کسب‌وکار",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
 
                     item {
