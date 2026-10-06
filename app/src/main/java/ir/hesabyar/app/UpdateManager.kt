@@ -1,5 +1,6 @@
 package ir.hesabyar.app
 
+import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -29,7 +30,7 @@ object UpdateManager {
                     Toast.makeText(context, "حساب‌یار به‌روز است.", Toast.LENGTH_LONG).show()
                     return@launch
                 }
-                androidx.appcompat.app.AlertDialog.Builder(context)
+                AlertDialog.Builder(context)
                     .setTitle("بروزرسانی جدید حساب‌یار")
                     .setMessage("نسخه ${update.version} آماده است. آیا می‌خواهید آن را دانلود و نصب کنید؟")
                     .setNegativeButton("بعداً", null)
