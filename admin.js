@@ -174,15 +174,33 @@ function exportExcel(user){
     const cells=[...tr.querySelectorAll("td")].slice(0,5).map(td=>td.innerText.trim());
     if(cells.length)rowsToExport.push(cells);
   });
-  // Excel on Persian/Windows locales commonly expects semicolon as the CSV delimiter.
-  // Keep UTF-8 BOM so Persian text is displayed correctly.
-  const csv="\ufeff"+rowsToExport.map(row=>row.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(";")).join("\r\n");
-  const blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});
+
+  // Create an Excel-compatible workbook (HTML table) with .xls extension.
+  // This avoids renaming a CSV file to .xlsx, which would produce an invalid workbook.
+  const escHtml=v=>String(v)
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;");
+
+  const table=rowsToExport.map((row,index)=>{
+    const cells=row.map(v=>"<td>"+escHtml(v)+"</td>").join("");
+    return "<tr>"+cells+"</tr>";
+  }).join("");
+
+  const html='<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body dir="rtl">'+
+    '<table border="1"><thead>'+table.split("</tr>")[0]+"</tr></thead><tbody>"+
+    table.split("</tr>").slice(1).join("</tr>")+
+    "</tbody></table></body></html>";
+
+  const blob=new Blob(["\\ufeff",html],{type:"application/vnd.ms-excel;charset=utf-8;"});
   const a=document.createElement("a");
   a.href=URL.createObjectURL(blob);
-  a.download="hesabyar-"+(user.email||"user").replace(/[^a-z0-9._-]/gi,"_")+".csv";
+  a.download="hesabyar-"+(user.email||"user").replace(/[^a-z0-9._-]/gi,"_")+".xls";
+  document.body.appendChild(a);
   a.click();
-  URL.revokeObjectURL(a.href);
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 }
 async function showPanel(){
   const s=session(); if(!s){return}
