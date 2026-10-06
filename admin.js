@@ -54,6 +54,9 @@ async function loadDashboard(){
 }
 function fmt(n){return new Intl.NumberFormat("fa-IR").format(Number(n||0))}
 function date(s){if(!s)return "—";const d=new Date(s);return isNaN(d)?s:d.toLocaleDateString("fa-IR")}
+function postAdmin(body){
+  return api("/functions/v1/admin-dashboard",{method:"POST",body:JSON.stringify(body)});
+}
 function render(){
   const q=$("search").value.trim().toLowerCase();
   const list=rows.filter(x=>(x.email||"").toLowerCase().includes(q));
@@ -92,6 +95,13 @@ async function openUserDetails(userId){
 
   $("detailEmail").textContent=user.email||"کاربر";
   $("detailMeta").textContent="ثبت‌نام: "+date(user.created_at)+"  |  آخرین ورود: "+date(user.last_sign_in_at);
+  $("detailActions").innerHTML=
+    '<button type="button" class="action-btn" id="toggleUserBtn">'+(user.disabled?"فعال‌سازی کاربر":"غیرفعال کردن کاربر")+'</button>'+
+    '<button type="button" class="action-btn secondary-action" id="passwordBtn">تغییر رمز عبور</button>'+
+    '<button type="button" class="action-btn export-action" id="exportBtn">خروجی Excel</button>';
+  $("toggleUserBtn").onclick=()=>toggleUser(user);
+  $("passwordBtn").onclick=()=>changePassword(user);
+  $("exportBtn").onclick=()=>exportExcel(user);
   $("detailCount").textContent=fmt(user.transaction_count);
   $("detailIncome").textContent=fmt(user.income);
   $("detailExpense").textContent=fmt(user.expense);
@@ -112,14 +122,59 @@ async function openUserDetails(userId){
 
     $("detailTransactions").innerHTML=txs.map(t=>{
       const income=t.type==="income";
-      return '<tr><td>'+esc(t.title||"—")+'</td><td>'+ (income?"درآمد":"هزینه") +'</td><td>'+fmt(t.amount)+'</td><td>'+esc(t.description||"—")+'</td><td>'+date(t.transaction_date||t.created_at)+'</td></tr>';
+      return '<tr><td>'+esc(t.title||"—")+'</td><td>'+ (income?"درآمد":"هزینه") +'</td><td>'+fmt(t.amount)+'</td><td>'+esc(t.description||"—")+'</td><td>'+date(t.transaction_date||t.created_at)+'</td><td><button type="button" class="delete-tx" data-tx-id="'+esc(t.id)+'">حذف</button></td></tr>';
     }).join("");
     $("detailEmpty").classList.toggle("hidden",txs.length!==0);
+    document.querySelectorAll(".delete-tx").forEach(btn=>{
+      btn.onclick=()=>deleteTransaction(user.id,btn.dataset.txId);
+    });
   }catch(e){
     $("detailStatus").textContent=e.message;
   }
 }
 
+async function toggleUser(user){
+  const action=user.disabled?"فعال‌سازی":"غیرفعال کردن";
+  if(!confirm("آیا مطمئن هستید که می‌خواهید این کاربر را "+action+" کنید؟")) return;
+  try{
+    await postAdmin({action:"set_status",user_id:user.id,disabled:!user.disabled});
+    await loadDashboard();
+    const fresh=rows.find(x=>x.id===user.id)||user;
+    closeModal();
+    openUserDetails(fresh.id);
+  }catch(e){alert(e.message)}
+}
+async function changePassword(user){
+  const password=prompt("رمز عبور جدید را وارد کنید (حداقل ۶ کاراکتر):");
+  if(password===null)return;
+  if(password.length<6){alert("رمز عبور باید حداقل ۶ کاراکتر باشد.");return}
+  try{
+    await postAdmin({action:"set_password",user_id:user.id,password});
+    alert("رمز عبور با موفقیت تغییر کرد.");
+  }catch(e){alert(e.message)}
+}
+async function deleteTransaction(userId,transactionId){
+  if(!confirm("این تراکنش حذف شود؟ این عملیات قابل بازگشت نیست."))return;
+  try{
+    await postAdmin({action:"delete_transaction",user_id:userId,transaction_id:transactionId});
+    await loadDashboard();
+    await openUserDetails(userId);
+  }catch(e){alert(e.message)}
+}
+function exportExcel(user){
+  const rowsToExport=[["عنوان","نوع","مبلغ","توضیحات","تاریخ"]];
+  document.querySelectorAll("#detailTransactions tr").forEach(tr=>{
+    const cells=[...tr.querySelectorAll("td")].slice(0,5).map(td=>td.innerText.trim());
+    if(cells.length)rowsToExport.push(cells);
+  });
+  const csv="\ufeff"+rowsToExport.map(row=>row.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(",")).join("\r\n");
+  const blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="hesabyar-"+(user.email||"user").replace(/[^a-z0-9._-]/gi,"_")+".csv";
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
 async function showPanel(){
   const s=session(); if(!s){return}
   $("loginScreen").classList.add("hidden");$("panel").classList.remove("hidden");
