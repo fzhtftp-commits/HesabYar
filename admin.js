@@ -6,14 +6,35 @@ let rows=[];
 const $=id=>document.getElementById(id);
 function session(){try{return JSON.parse(localStorage.getItem(SESSION_KEY)||"null")}catch(e){return null}}
 function setSession(s){if(s)localStorage.setItem(SESSION_KEY,JSON.stringify(s));else localStorage.removeItem(SESSION_KEY)}
-async function api(path,options={}){
+async function refreshSession(){
+  const s=session();
+  if(!s?.refresh_token) return false;
+  const res=await fetch(SUPABASE_URL+"/auth/v1/token?grant_type=refresh_token",{
+    method:"POST",
+    headers:{"apikey":SUPABASE_KEY,"Content-Type":"application/json"},
+    body:JSON.stringify({refresh_token:s.refresh_token})
+  });
+  const text=await res.text();
+  let data=null;
+  try{data=text?JSON.parse(text):null}catch(e){data=null}
+  if(!res.ok || !data?.access_token) return false;
+  setSession(data);
+  return true;
+}
+async function api(path,options={},retried=false){
   const s=session();
   const headers={"apikey":SUPABASE_KEY,"Content-Type":"application/json",...(options.headers||{})};
   if(s?.access_token)headers.Authorization="Bearer "+s.access_token;
   const res=await fetch(SUPABASE_URL+path,{...options,headers});
   const text=await res.text(); let data=null;
   try{data=text?JSON.parse(text):null}catch(e){data=text}
-  if(!res.ok)throw new Error(data?.message||data?.msg||data?.error_description||"خطا در ارتباط با سرور");
+  if(!res.ok){
+    const message=data?.message||data?.msg||data?.error_description||data?.error||"خطا در ارتباط با سرور";
+    if(res.status===401 && !retried && await refreshSession()){
+      return api(path,options,true);
+    }
+    throw new Error(message);
+  }
   return data;
 }
 async function signIn(email,password){
