@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#123d63">
 <title>حساب‌یار | داشبورد مالی</title>
 <link rel="stylesheet" href="style.css">
 </head>
@@ -21,8 +22,15 @@
 </div>
 
 <div id="appScreen" class="hidden">
-<header><div class="brand">حساب‌یار</div><div class="sub">داشبورد مدیریت مالی <span id="userEmail"></span> <button id="logoutBtn" class="logout">خروج</button></div></header>
+<header>
+  <div class="header-inner">
+    <div><div class="brand">حساب‌یار</div><div class="sub">داشبورد مدیریت مالی</div></div>
+    <div class="user-area"><span id="userEmail"></span><button id="logoutBtn" class="logout">خروج</button></div>
+  </div>
+</header>
 <main>
+<section class="welcome-row"><div><h1>نمای کلی حساب شما</h1><p>وضعیت درآمد، هزینه و سود را یکجا ببینید.</p></div></section>
+
 <section class="hero card">
   <div><span>موجودی / سود خالص</span><strong id="balance">۰ تومان</strong><small id="balanceHint">بر اساس تمام تراکنش‌ها</small></div>
   <div class="hero-icon">﷼</div>
@@ -52,7 +60,7 @@
 </section>
 
 <section class="card trend-card">
-<div class="section-head"><div><div class="section-title">روند ۶ ماه اخیر</div><small>درآمد و هزینه به تفکیک ماه</small></div></div>
+<div class="section-head"><div><div class="section-title">روند ۶ ماه اخیر</div><small>درآمد و هزینه به تفکیک ماه</small></div><div class="chart-legend"><span class="legend-income">● درآمد</span><span class="legend-expense">● هزینه</span></div></div>
 <div id="trendChart" class="trend-chart"></div>
 </section>
 
@@ -63,7 +71,7 @@
 <div class="tool-row"><button id="exportBtn" class="small">خروجی Excel</button><button id="backupBtn" class="small outline">پشتیبان JSON</button><button id="clearBtn" class="small danger">پاک‌کردن همه</button></div>
 </section>
 
-<section><div class="section-head"><div class="section-title">تراکنش‌ها <span id="count" class="count"></span></div><div id="status" class="status"></div></div><div id="transactions"></div></section>
+<section><div class="section-head transactions-head"><div class="section-title">تراکنش‌ها <span id="count" class="count"></span></div><div id="status" class="status"></div></div><div id="transactions"></div></section>
 </main>
 </div>
 
