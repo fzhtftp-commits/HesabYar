@@ -18,6 +18,9 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.DisposableEffect
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -413,14 +416,34 @@ fun HesabYarApp(initialSplash: Boolean = true) {
         ) {
             Scaffold(
                 topBar = {
-                    TopAppBar(
-                        title = {
-                            Text(
-                                "حساب‌یار",
-                                fontWeight = FontWeight.Bold
-                            )
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        shadowElevation = 8.dp,
+                        color = Color.Transparent
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(
+                                    Brush.horizontalGradient(
+                                        listOf(Color(0xFF071A33), Color(0xFF0D2D4F))
+                                    )
+                                )
+                                .padding(horizontal = 18.dp, vertical = 14.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Column {
+                                    Text("حساب‌یار", color = Color.White, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold)
+                                    Text("داشبورد مالی کسب‌وکار", color = Color.White.copy(alpha = 0.75f), style = MaterialTheme.typography.labelMedium)
+                                }
+                                Text("●", color = Color(0xFF4CAF50), style = MaterialTheme.typography.titleLarge)
+                            }
                         }
-                    )
+                    }
                 }
             ) { padding ->
 
@@ -461,30 +484,24 @@ fun HesabYarApp(initialSplash: Boolean = true) {
 
                     item {
                         Card(
-                            Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.primaryContainer
-                            )
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(26.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color.Transparent)
                         ) {
-                            Column(
-                                Modifier.padding(18.dp),
-                                verticalArrangement = Arrangement.spacedBy(6.dp)
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(
+                                        Brush.linearGradient(listOf(Color(0xFF0B3157), Color(0xFF145A8D))),
+                                        RoundedCornerShape(26.dp)
+                                    )
+                                    .padding(22.dp)
                             ) {
-                                Text(
-                                    "موجودی خالص",
-                                    style =
-                                        MaterialTheme.typography.labelLarge
-                                )
-
-                                Text(
-                                    "${formatter.format(balance)} تومان",
-                                    style = MaterialTheme.typography.headlineMedium,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Text(
-                                    if (balance >= 0) "وضعیت مالی مثبت" else "نیاز به بررسی هزینه‌ها",
-                                    style = MaterialTheme.typography.bodySmall
-                                )
+                                Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                                    Text("موجودی خالص", color = Color.White.copy(alpha = 0.82f), style = MaterialTheme.typography.labelLarge)
+                                    Text("${formatter.format(balance)} تومان", color = Color.White, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.ExtraBold)
+                                    Text(if (balance >= 0) "وضعیت مالی مثبت ✓" else "نیاز به بررسی هزینه‌ها", color = Color.White.copy(alpha = 0.82f), style = MaterialTheme.typography.bodySmall)
+                                }
                             }
                         }
                     }
@@ -1212,29 +1229,21 @@ fun SummaryCard(
     modifier: Modifier,
     formatter: DecimalFormat
 ) {
-    Card(modifier) {
-        Column(
-            Modifier.padding(14.dp)
-        ) {
-            Text(
-                title,
-                style =
-                    MaterialTheme.typography.labelLarge
-            )
-
-            Text(
-                formatter.format(value),
-                fontWeight =
-                    FontWeight.Bold
-            )
-
-            Text(
-                "تومان",
-                style =
-                    MaterialTheme.typography.labelSmall
-            )
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(22.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (title == "درآمد") Color(0xFFEAF8F0) else Color(0xFFFFF0F0)
+        )
+    ) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(if (title == "درآمد") "↗ درآمد" else "↘ هزینه", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+            Text(formatter.format(value), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold)
+            Text("تومان", style = MaterialTheme.typography.labelSmall)
         }
     }
+}
+
 }
 
 @Composable
