@@ -9,11 +9,10 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.*
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.runtime.*
 import androidx.compose.runtime.DisposableEffect
@@ -1290,25 +1289,24 @@ fun AddTransactionDialog(
 
                 var categoryExpanded by remember { mutableStateOf(false) }
 
-                ExposedDropdownMenuBox(
-                    expanded = categoryExpanded,
-                    onExpandedChange = {
-                        categoryExpanded = !categoryExpanded
-                    }
+                Box(
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     OutlinedTextField(
                         value = category,
-                        onValueChange = { category = it },
+                        onValueChange = { },
                         label = { Text("دسته‌بندی") },
                         placeholder = { Text("انتخاب دسته‌بندی") },
                         singleLine = true,
                         readOnly = true,
                         modifier = Modifier
-                            .menuAnchor()
                             .fillMaxWidth()
+                            .clickable {
+                                categoryExpanded = true
+                            }
                     )
 
-                    ExposedDropdownMenu(
+                    DropdownMenu(
                         expanded = categoryExpanded,
                         onDismissRequest = {
                             categoryExpanded = false
