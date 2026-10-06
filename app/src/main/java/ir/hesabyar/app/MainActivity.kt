@@ -1365,16 +1365,14 @@ fun AddTransactionDialog(
                 ) {
                     OutlinedTextField(
                         value = category,
-                        onValueChange = { },
+                        onValueChange = {
+                            category = it
+                            categoryExpanded = true
+                        },
                         label = { Text("دسته‌بندی") },
-                        placeholder = { Text("انتخاب دسته‌بندی") },
+                        placeholder = { Text("مثلاً فروش، خرید، حقوق") },
                         singleLine = true,
-                        readOnly = true,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                categoryExpanded = true
-                            }
+                        modifier = Modifier.fillMaxWidth()
                     )
 
                     DropdownMenu(
