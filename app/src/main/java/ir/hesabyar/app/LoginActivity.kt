@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
@@ -37,6 +38,8 @@ class LoginActivity : ComponentActivity() {
         var success by remember { mutableStateOf("") }
         var loading by remember { mutableStateOf(false) }
         var registerMode by remember { mutableStateOf(false) }
+        var passwordVisible by remember { mutableStateOf(false) }
+        var confirmPasswordVisible by remember { mutableStateOf(false) }
         val scope = rememberCoroutineScope()
         val prefs = getSharedPreferences("hesabyar_data", Context.MODE_PRIVATE)
 
@@ -149,7 +152,12 @@ class LoginActivity : ComponentActivity() {
                                     },
                                     label = { Text("رمز عبور") },
                                     singleLine = true,
-                                    visualTransformation = PasswordVisualTransformation(),
+                                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                                    trailingIcon = {
+                                        TextButton(onClick = { passwordVisible = !passwordVisible }) {
+                                            Text(if (passwordVisible) "مخفی" else "نمایش")
+                                        }
+                                    },
                                     shape = RoundedCornerShape(16.dp),
                                     modifier = Modifier.fillMaxWidth()
                                 )
@@ -163,7 +171,12 @@ class LoginActivity : ComponentActivity() {
                                         },
                                         label = { Text("تکرار رمز عبور") },
                                         singleLine = true,
-                                        visualTransformation = PasswordVisualTransformation(),
+                                        visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                                        trailingIcon = {
+                                            TextButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
+                                                Text(if (confirmPasswordVisible) "مخفی" else "نمایش")
+                                            }
+                                        },
                                         shape = RoundedCornerShape(16.dp),
                                         modifier = Modifier.fillMaxWidth()
                                     )
