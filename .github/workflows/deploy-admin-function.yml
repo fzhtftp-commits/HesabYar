@@ -1,6 +1,12 @@
 name: Deploy HesabYar Admin Function
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'supabase/functions/admin-dashboard/**'
+      - '.github/workflows/deploy-admin-function.yml'
   workflow_dispatch:
 
 jobs:
