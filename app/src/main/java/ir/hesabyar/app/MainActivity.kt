@@ -434,7 +434,7 @@ fun HesabYarApp(initialSplash: Boolean = true) {
                 ) {
                     item {
                         Text(
-                            "مدیریت مالی کسب‌وکار",
+                            "داشبورد حساب‌یار",
                             style =
                                 MaterialTheme.typography.headlineSmall,
                             fontWeight =
