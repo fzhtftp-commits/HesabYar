@@ -114,6 +114,7 @@ async function openUserDetails(userId){
   try{
     const data=await api("/functions/v1/admin-dashboard?user_id="+encodeURIComponent(userId));
     const txs=data.transactions||[];
+    renderDetailChart(data.user?.income,data.user?.expense);
     $("detailStatus").textContent="";
     $("detailCount").textContent=fmt(txs.length);
     $("detailIncome").textContent=fmt(data.user?.income);
@@ -133,6 +134,12 @@ async function openUserDetails(userId){
   }
 }
 
+function renderDetailChart(income,expense){
+  const i=Number(income||0), e=Number(expense||0), max=Math.max(i,e,1);
+  $("detailChart").innerHTML=
+    '<div class="chart-box"><h3>درآمد</h3><div class="bar-track"><div class="bar-fill income-bar" style="width:'+Math.round(i/max*100)+'%"></div></div><div class="chart-value">'+fmt(i)+' تومان</div></div>'+
+    '<div class="chart-box"><h3>هزینه</h3><div class="bar-track"><div class="bar-fill expense-bar" style="width:'+Math.round(e/max*100)+'%"></div></div><div class="chart-value">'+fmt(e)+' تومان</div></div>';
+}
 async function toggleUser(user){
   const action=user.disabled?"فعال‌سازی":"غیرفعال کردن";
   if(!confirm("آیا مطمئن هستید که می‌خواهید این کاربر را "+action+" کنید؟")) return;
